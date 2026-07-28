@@ -1,0 +1,8 @@
+tavares-tattoo/
+├── index.html
+├── css/
+│   └── style.css
+├── js/
+│   └── main.js
+└── assets/
+    └── favicon.ico
