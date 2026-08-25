@@ -1,17 +1,19 @@
-/* ESTILOS ESPECÍFICOS DE VIEWS */
+/* ==========================================================================
+   ESTILOS DE VIEWS SAAS (DASHBOARD, CALENDÁRIO, TABELAS)
+   ========================================================================== */
 
-/* Grid de Métricas do Dashboard */
+/* Grid Dashboard */
 .grid-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
 
-/* Hero Workout no Dashboard */
+/* Hero Workout (Destaque do Próximo Treino) */
 .hero-workout {
-  background: linear-gradient(135deg, rgba(255, 85, 0, 0.12) 0%, rgba(19, 27, 46, 1) 100%);
-  border: 1px solid rgba(255, 85, 0, 0.3);
+  background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+  color: #ffffff;
   border-radius: var(--radius-lg);
   padding: 24px;
   margin-bottom: 24px;
@@ -20,24 +22,47 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
+  box-shadow: var(--shadow-md);
 }
 
 .hero-info h3 {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   margin-top: 6px;
   margin-bottom: 6px;
+  color: #ffffff;
 }
 
 .hero-meta {
   display: flex;
   gap: 16px;
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  color: #94a3b8;
+  font-size: 0.85rem;
   margin-top: 10px;
   flex-wrap: wrap;
 }
 
-/* Calendário Grid */
+.hero-meta span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  color: #f8fafc;
+}
+
+/* Card Destaque Azul Escuro (ex: Provas) */
+.card-dark-feature {
+  background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+  color: #ffffff;
+}
+
+.card-dark-feature .card-title {
+  color: #94a3b8;
+}
+
+.card-dark-feature .card-value {
+  color: #ffffff;
+}
+
+/* Calendário Estilo SaaS Grid */
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -49,15 +74,15 @@
   padding: 8px;
   font-weight: 700;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
 }
 
 .calendar-cell {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  min-height: 110px;
+  min-height: 100px;
   padding: 8px;
   display: flex;
   flex-direction: column;
@@ -70,19 +95,20 @@
 }
 
 .calendar-cell.has-workout:hover {
-  border-color: var(--accent-primary);
+  border-color: var(--primary);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .calendar-date-num {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
 }
 
 .calendar-event {
-  font-size: 0.75rem;
-  padding: 6px;
+  font-size: 0.725rem;
+  padding: 4px 6px;
   border-radius: var(--radius-sm);
   margin-top: 4px;
 }
@@ -93,13 +119,13 @@
   .calendar-cell { min-height: auto; margin-bottom: 4px; }
 }
 
-/* Comparativo Planejado x Realizado */
+/* Caixa Analítica: Planejado x Realizado */
 .comparison-box {
-  background: rgba(10, 14, 23, 0.6);
-  border: 1px solid var(--border-color);
+  background: var(--background);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px;
-  margin-top: 12px;
+  margin-top: 14px;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 12px;
@@ -111,14 +137,48 @@
 }
 
 .comp-col h5 {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .comp-val {
-  font-family: var(--font-mono);
   font-weight: 700;
   font-size: 0.95rem;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tabela de Treinos SaaS */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.saas-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.saas-table th {
+  background: var(--background);
+  color: var(--text-secondary);
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.saas-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.saas-table tr:hover td {
+  background: var(--surface-hover);
 }
