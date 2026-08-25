@@ -13,8 +13,8 @@ export class WorkoutsView {
     container.innerHTML = `
       <div class="page-title-bar">
         <div>
-          <h1 class="page-title">Histórico & Treinos</h1>
-          <p class="card-subtext">Consulte, conclua ou edite seus treinos.</p>
+          <h1 class="page-title">Treinos Agendados & Histórico</h1>
+          <p class="card-subtext">Listagem completa do plano e atividades registradas.</p>
         </div>
         <button class="btn" id="workouts-btn-add"><i data-feather="plus"></i> Novo Treino</button>
       </div>
@@ -46,9 +46,9 @@ export class WorkoutsView {
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
           <div>
-            <span class="badge ${badgeClass}">${isCompleted ? '✅ Concluído' : '🔵 Planejado'}</span>
-            <h3 style="margin-top: 6px;">${w.type}</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">Data: ${w.date}</p>
+            <span class="badge ${badgeClass}">${isCompleted ? '🟢 Concluído' : '🔵 Planejado'}</span>
+            <h3 style="margin-top: 6px; font-size: 1.1rem; color: var(--text-primary);">${w.type}</h3>
+            <p style="font-size: 0.825rem; color: var(--text-secondary);">Data: ${w.date}</p>
           </div>
           <div style="display: flex; gap: 8px;">
             <button class="btn btn-secondary btn-edit"><i data-feather="edit-2"></i> ${isCompleted ? 'Editar' : 'Concluir'}</button>
@@ -56,7 +56,7 @@ export class WorkoutsView {
           </div>
         </div>
 
-        <!-- COMPARAÇÃO PLANEJADO X REALIZADO -->
+        <!-- COMPARAÇÃO PLANEJADO X REALIZADO SAAS -->
         <div class="comparison-box">
           <div class="comp-col">
             <h5>Planejado</h5>
@@ -65,7 +65,7 @@ export class WorkoutsView {
           </div>
           <div class="comp-col">
             <h5>Realizado</h5>
-            <div class="comp-val" style="color: ${isCompleted ? 'var(--accent-green)' : 'var(--text-muted)'};">
+            <div class="comp-val" style="color: ${isCompleted ? 'var(--success)' : 'var(--text-muted)'};">
               ${isCompleted ? `${w.completed.distance} km` : '--'}
             </div>
             <div style="font-size:0.75rem; color: var(--text-muted);">Pace: ${isCompleted ? `${w.completed.pace}/km` : '--'}</div>
