@@ -35,7 +35,7 @@ export class EvolutionView {
   }
 
   renderCharts(completedWorkouts) {
-    // Chart 1: Volume por treino concluído
+    // Chart 1: Volume
     const ctxVol = document.getElementById('chart-volume')?.getContext('2d');
     if (ctxVol) {
       const labels = completedWorkouts.map(w => w.date);
@@ -48,7 +48,7 @@ export class EvolutionView {
           datasets: [{
             label: 'Distância (km)',
             data: dataKm.length > 0 ? dataKm : [0],
-            backgroundColor: '#ff5500',
+            backgroundColor: '#2563eb',
             borderRadius: 6
           }]
         },
@@ -56,14 +56,14 @@ export class EvolutionView {
           responsive: true,
           plugins: { legend: { display: false } },
           scales: {
-            y: { grid: { color: '#23314d' }, ticks: { color: '#8e9bb0' } },
-            x: { grid: { display: false }, ticks: { color: '#8e9bb0' } }
+            y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+            x: { grid: { display: false }, ticks: { color: '#64748b' } }
           }
         }
       });
     }
 
-    // Chart 2: Evolução de Pace Médio
+    // Chart 2: Pace
     const ctxPace = document.getElementById('chart-pace')?.getContext('2d');
     if (ctxPace) {
       const labelsPace = completedWorkouts.map(w => w.date);
@@ -89,8 +89,8 @@ export class EvolutionView {
           responsive: true,
           plugins: { legend: { display: false } },
           scales: {
-            y: { grid: { color: '#23314d' }, ticks: { color: '#8e9bb0' } },
-            x: { grid: { display: false }, ticks: { color: '#8e9bb0' } }
+            y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+            x: { grid: { display: false }, ticks: { color: '#64748b' } }
           }
         }
       });
