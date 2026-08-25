@@ -24,15 +24,15 @@ export class RacesView {
           const diffDays = Math.ceil((raceDate - today) / (1000 * 60 * 60 * 24));
 
           return `
-            <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div class="card card-dark-feature" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
               <div>
-                <span class="badge badge-planned">🏁 Faltam ${diffDays > 0 ? diffDays : 0} dias</span>
-                <h3 style="margin-top: 8px;">${r.label}</h3>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px;">Data: ${r.date} | Distância: ${r.distance}</p>
+                <span class="badge badge-planned" style="background: rgba(255,255,255,0.15); color: #ffffff;">🏁 Faltam ${diffDays > 0 ? diffDays : 0} dias</span>
+                <h3 style="margin-top: 8px; font-size: 1.2rem;">${r.label}</h3>
+                <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">Data: ${r.date} | Distância: ${r.distance}</p>
               </div>
               <div style="text-align: right;">
-                <div class="card-title">Meta de Tempo</div>
-                <div class="card-value" style="color: var(--accent-green);">${r.targetTime}</div>
+                <div class="card-title" style="color: #94a3b8;">Meta de Tempo</div>
+                <div class="card-value" style="color: #10b981;">${r.targetTime}</div>
               </div>
             </div>
           `;
