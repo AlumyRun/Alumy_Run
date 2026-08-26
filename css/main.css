@@ -2,30 +2,25 @@
    PALETA VISUAL & VARIÁVEIS CSS - INSPIRAÇÃO SAAS ALUMY
    ========================================================================== */
 :root {
-  /* Cores Primárias e Secundárias */
   --primary: #2563eb;          /* Azul Vivo Alumy */
   --primary-dark: #1e3a8a;     /* Azul Escuro Navy */
-  --primary-light: #60a5fa;    /* Azul Claro para destaques */
+  --primary-light: #60a5fa;    
   
-  /* Superfícies Light */
   --background: #f1f5f9;       /* Azul/Cinza bem claro de fundo */
   --surface: #ffffff;          /* Branco puro para os cards */
-  --surface-hover: #f8fafc;    /* Hover de listas/cards */
-  --border: #e2e8f0;           /* Borda muito suave */
+  --surface-hover: #f8fafc;    
+  --border: #e2e8f0;           
   --border-focus: #2563eb;
   
-  /* Tipografia */
-  --text-primary: #0f172a;     /* Texto escuro principal */
-  --text-secondary: #475569;   /* Cinza para textos auxiliares */
-  --text-muted: #94a3b8;       /* Cinza claro para labels secundárias */
+  --text-primary: #0f172a;     
+  --text-secondary: #475569;   
+  --text-muted: #94a3b8;       
   
-  /* Indicadores de Status */
-  --success: #10b981;          /* Verde (Concluído) */
-  --warning: #f97316;          /* Laranja (Atenção / Parcial) */
-  --danger: #ef4444;           /* Vermelho (Perdido) */
-  --info: #0284c7;             /* Azul Info (Planejado) */
+  --success: #10b981;          
+  --warning: #f97316;          
+  --danger: #ef4444;           
+  --info: #0284c7;             
 
-  /* Formatos, Geometria e Sombras SaaS */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
@@ -36,7 +31,6 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* REGRAS GLOBAIS E RESET */
 * {
   margin: 0;
   padding: 0;
@@ -53,7 +47,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* SIDEBAR LATERAL FIXA & COLLAPSIBLE */
+/* ==========================================================================
+   SIDEBAR LATERAL FIXA & COLLAPSIBLE (DESKTOP)
+   ========================================================================== */
 .sidebar {
   width: 250px;
   background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
@@ -65,10 +61,10 @@ body {
   z-index: 100;
   box-shadow: var(--shadow-md);
   transition: var(--transition);
-  overflow: hidden; /* Força todo conteúdo interno a respeitar os limites do sidebar */
+  overflow: hidden;
 }
 
-/* BOTÃO DE TOGGLE PENDURADO NA DIVISA SIDEBAR x CONTEÚDO */
+/* BOTÃO DE TOGGLE PENDURADO NA BORDA */
 .sidebar-toggle {
   position: absolute;
   top: 50%;
@@ -100,7 +96,7 @@ body {
   pointer-events: none;
 }
 
-/* MARCA / BRAND */
+/* BRANDING / LOGO */
 .brand {
   padding: 22px 18px;
   display: flex;
@@ -141,7 +137,7 @@ body {
   font-weight: 500;
 }
 
-/* MENU DE NAVEGAÇÃO */
+/* MENU DE NAVEGAÇÃO SIDEBAR */
 .nav-menu {
   list-style: none;
   padding: 18px 10px;
@@ -151,7 +147,7 @@ body {
   flex: 1;
 }
 
-.nav-item {
+.sidebar .nav-item {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -166,22 +162,22 @@ body {
   white-space: nowrap;
 }
 
-.nav-item i {
+.sidebar .nav-item i {
   min-width: 20px;
   height: 20px;
 }
 
-.nav-text {
+.sidebar .nav-text {
   white-space: nowrap;
   transition: opacity 0.2s ease;
 }
 
-.nav-item:hover {
+.sidebar .nav-item:hover {
   background-color: rgba(255, 255, 255, 0.06);
   color: #ffffff;
 }
 
-.nav-item.active {
+.sidebar .nav-item.active {
   background-color: var(--primary);
   color: #ffffff;
   font-weight: 600;
@@ -209,7 +205,7 @@ body {
   font-size: 0.9rem;
 }
 
-/* ÁREA CONTEÚDO PRINCIPAL */
+/* CONTEÚDO PRINCIPAL */
 .main-content {
   margin-left: 250px;
   flex: 1;
@@ -220,33 +216,31 @@ body {
 }
 
 /* ==========================================================================
-   ESTADO RECOLHIDO (REGRAS DE OCURTAMENTO DE TEXTO E CENTRALIZAÇÃO DE ÍCONES)
+   ESTADO RECOLHIDO (DESKTOP)
    ========================================================================== */
 body.sidebar-collapsed .sidebar {
-  width: 70px;
+  width: 70px !important;
 }
 
-/* Oculta completamente todos os textos do menu, marca e rodapé */
-body.sidebar-collapsed .brand-text,
-body.sidebar-collapsed .nav-text,
-body.sidebar-collapsed .footer-text {
+body.sidebar-collapsed .sidebar .brand-text,
+body.sidebar-collapsed .sidebar .nav-text,
+body.sidebar-collapsed .sidebar .footer-text {
+  display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
-  display: none !important;
 }
 
-/* Centraliza o cabeçalho e os ícones dentro do espaço de 70px */
-body.sidebar-collapsed .brand {
+body.sidebar-collapsed .sidebar .brand {
   padding: 22px 0;
   justify-content: center;
 }
 
-body.sidebar-collapsed .nav-menu {
+body.sidebar-collapsed .sidebar .nav-menu {
   padding: 18px 0;
   align-items: center;
 }
 
-body.sidebar-collapsed .nav-item {
+body.sidebar-collapsed .sidebar .nav-item {
   padding: 11px 0;
   width: 48px;
   height: 48px;
@@ -254,19 +248,20 @@ body.sidebar-collapsed .nav-item {
   gap: 0;
 }
 
-body.sidebar-collapsed .sidebar-footer {
+body.sidebar-collapsed .sidebar .sidebar-footer {
   padding: 16px 0;
   display: flex;
   justify-content: center;
 }
 
-/* Reajuste automático de margem do conteúdo principal */
 body.sidebar-collapsed .main-content {
-  margin-left: 70px;
-  width: calc(100% - 70px);
+  margin-left: 70px !important;
+  width: calc(100% - 70px) !important;
 }
 
-/* HEADER TOPO ESTILO ALUMY */
+/* ==========================================================================
+   HEADER SUPERIOR
+   ========================================================================== */
 .top-header {
   display: flex;
   align-items: center;
@@ -356,20 +351,36 @@ body.sidebar-collapsed .main-content {
   font-size: 0.9rem;
 }
 
-/* RESPONSIVIDADE MOBILE */
+/* ==========================================================================
+   NAVEGAÇÃO MOBILE (ESCONDIDA NO DESKTOP)
+   ========================================================================== */
+.mobile-nav {
+  display: none !important; /* Força ocultamento total no Desktop */
+}
+
 @media (max-width: 900px) {
-  .sidebar { display: none; }
-  .sidebar-toggle { display: none; }
-  .top-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .header-search { max-width: 100%; }
+  .sidebar, .sidebar-toggle { 
+    display: none !important; 
+  }
+  
+  .top-header { 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 12px; 
+  }
+  
+  .header-search { 
+    max-width: 100%; 
+  }
+  
   .main-content, body.sidebar-collapsed .main-content {
-    margin-left: 0;
-    width: 100%;
+    margin-left: 0 !important;
+    width: 100% !important;
     padding: 16px 16px 90px 16px;
   }
 
   .mobile-nav {
-    display: flex;
+    display: flex !important;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -382,11 +393,14 @@ body.sidebar-collapsed .main-content {
   }
 
   .mobile-nav .nav-item {
+    display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 2px;
     font-size: 0.675rem;
     padding: 6px;
     color: #94a3b8;
+    text-decoration: none;
   }
 
   .mobile-nav .nav-item.active {
