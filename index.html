@@ -5,26 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alumy Run — Seu treinamento. Seus dados. Sua evolução.</title>
   
-  <!-- Fontes Google (Inter & JetBrains Mono) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Feather Icons CDN -->
   <script src="https://unpkg.com/feather-icons"></script>
   
-  <!-- Estilos da Aplicação -->
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/views.css">
 </head>
 <body>
 
-  <!-- SIDEBAR LATERAL COLLAPSIBLE -->
+  <!-- SIDEBAR LATERAL -->
   <aside class="sidebar" id="sidebar">
-    <!-- BOTÃO DE TOGGLE PENDURADO NA BORDA DIREITA -->
     <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Recolher menu">
       <i data-feather="chevron-left" id="toggle-icon"></i>
     </button>
@@ -76,7 +71,7 @@
     </div>
   </aside>
 
-  <!-- MOBILE NAV (INFERIOR) -->
+  <!-- MOBILE NAV -->
   <nav class="mobile-nav">
     <a class="nav-item active" data-target="dashboard"><i data-feather="home"></i> <span>Home</span></a>
     <a class="nav-item" data-target="calendar"><i data-feather="calendar"></i> <span>Agenda</span></a>
@@ -85,9 +80,8 @@
     <a class="nav-item" data-target="races"><i data-feather="flag"></i> <span>Provas</span></a>
   </nav>
 
-  <!-- ÁREA PRINCIPAL COM HEADER SAAS -->
+  <!-- CONTEÚDO PRINCIPAL -->
   <main class="main-content" id="main-content">
-    <!-- HEADER SUPERIOR -->
     <header class="top-header">
       <div class="header-user-info">
         <h2 id="top-header-title">Alumy Run</h2>
@@ -98,13 +92,13 @@
         <input type="text" placeholder="Pesquisar treino, prova ou atividade..." class="search-input">
       </div>
       <div class="header-actions">
-        <button class="header-icon-btn" title="Atualizar dados" onclick="window.app.reloadCurrentView()"><i data-feather="refresh-cw"></i></button>
+        <button class="header-icon-btn" title="Atualizar dados" onclick="window.app && window.app.reloadCurrentView()"><i data-feather="refresh-cw"></i></button>
         <button class="header-icon-btn" title="Notificações"><i data-feather="bell"></i></button>
         <div class="user-avatar">R</div>
       </div>
     </header>
 
-    <!-- VIEWS DA SPA -->
+    <!-- SEÇÕES DAS VIEWS -->
     <section id="view-dashboard" class="view-section"></section>
     <section id="view-calendar" class="view-section" style="display: none;"></section>
     <section id="view-workouts" class="view-section" style="display: none;"></section>
@@ -114,12 +108,10 @@
     <section id="view-profile" class="view-section" style="display: none;"></section>
   </main>
 
-  <!-- MODAL CONTAINER -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal-container" id="modal-container"></div>
   </div>
 
-  <!-- PONTO DE ENTRADA JS -->
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
