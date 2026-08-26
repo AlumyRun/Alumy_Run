@@ -1,4 +1,461 @@
 /* ==========================================================================
+   ESTILOS DO DASHBOARD (Otimizado para Layout Horizontal SaaS)
+   ========================================================================== */
+
+/* GRID DE MÉTRICAS (4 CARDS LADO A LADO NO DESKTOP) */
+.grid-metrics-horizontal {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  margin-bottom: 20px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.metric-card-compact {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 18px 20px !important;
+  box-shadow: var(--shadow-sm) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-width: 0 !important; /* Previne estouro de layout */
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.metric-card-compact .card-title {
+  font-size: 0.725rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: 6px !important;
+  text-transform: uppercase !important;
+}
+
+.metric-card-compact .card-value {
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.2 !important;
+}
+
+.metric-card-compact .card-value small {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+}
+
+.metric-card-compact .card-subtext {
+  font-size: 0.775rem !important;
+  color: var(--text-muted) !important;
+  margin-top: 6px !important;
+}
+
+/* HERO WORKOUT HORIZONTAL E COMPACTO */
+.card-dark-feature {
+  background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%) !important;
+  color: #ffffff !important;
+  border-radius: var(--radius-md) !important;
+  padding: 20px 24px !important;
+  margin-bottom: 20px !important;
+  box-shadow: var(--shadow-sm) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.hero-workout-horizontal {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+.hero-left .hero-badge {
+  font-size: 0.7rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  color: var(--primary-light) !important;
+  text-transform: uppercase !important;
+}
+
+.hero-left h3 {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  margin-top: 2px !important;
+  color: #ffffff !important;
+}
+
+.hero-left p {
+  font-size: 0.85rem !important;
+  color: #94a3b8 !important;
+  margin-top: 2px !important;
+}
+
+.hero-tags {
+  display: flex !important;
+  gap: 16px !important;
+  margin-top: 10px !important;
+  font-size: 0.8rem !important;
+  color: #e2e8f0 !important;
+  font-weight: 500 !important;
+}
+
+/* BLOCOS INFERIORES LADO A LADO */
+.dashboard-bottom-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.bottom-block {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 18px 20px !important;
+  box-shadow: var(--shadow-sm) !important;
+  box-sizing: border-box !important;
+}
+
+.block-header {
+  margin-bottom: 14px !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding-bottom: 8px !important;
+}
+
+.block-header h3 {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  color: var(--text-primary) !important;
+}
+
+/* LISTA DE RESUMO */
+.summary-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.summary-item {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 0.85rem !important;
+  padding: 6px 0 !important;
+  border-bottom: 1px dashed var(--border) !important;
+}
+
+.summary-item:last-child {
+  border-bottom: none !important;
+}
+
+.summary-item span {
+  color: var(--text-secondary) !important;
+}
+
+.summary-item strong {
+  color: var(--text-primary) !important;
+}
+
+/* LISTA DE PRÓXIMOS TREINOS */
+.upcoming-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.upcoming-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 8px 10px !important;
+  background: var(--background) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.upcoming-date {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  min-width: 54px !important;
+  text-align: center !important;
+}
+
+.upcoming-info {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.upcoming-info strong {
+  font-size: 0.85rem !important;
+  color: var(--text-primary) !important;
+}
+
+.upcoming-info small {
+  font-size: 0.75rem !important;
+  color: var(--text-secondary) !important;
+}
+
+.empty-text {
+  font-size: 0.85rem !important;
+  color: var(--text-muted) !important;
+  text-align: center !important;
+  padding: 12px 0 !important;
+}
+
+/* RESPONSIVIDADE DO DASHBOARD */
+@media (max-width: 1024px) {
+  .grid-metrics-horizontal {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-metrics-horizontal {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .hero-workout-horizontal {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .hero-tags {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+}
+
+/* ==========================================================================
+   ESTILOS DO MÓDULO DE TREINOS
+   ========================================================================== */
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.btn-filter {
+  background: var(--background);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.btn-filter.active, .btn-filter:hover {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.filter-select {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.workouts-section-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.workouts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workout-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workout-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.workout-type {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.workout-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.status-planned { background: #e0f2fe; color: #0369a1; }
+.status-completed { background: #d1fae5; color: #047857; }
+.status-partial { background: #ffedd5; color: #c2410c; }
+.status-missed { background: #fee2e2; color: #b91c1c; }
+
+.workout-meta-row {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.workout-desc, .workout-obj {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.workout-comparison-box {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--background);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--primary);
+  font-size: 0.8rem;
+}
+
+.comp-title {
+  font-weight: 800;
+  color: var(--primary-dark);
+  margin-bottom: 2px;
+}
+
+.workout-card-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+}
+
+.btn-secondary {
+  background: var(--background);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+}
+
+/* MODAL DE TREINO */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 540px;
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-close-btn {
+  background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  outline: none;
+  font-size: 0.85rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.input-readonly {
+  background: var(--background);
+  font-weight: 700;
+}
+
+/* ==========================================================================
    ESTILOS DO CALENDÁRIO
    ========================================================================== */
 .calendar-controls {
@@ -89,7 +546,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* CORES DOS STATUS DOS TREINOS NO CALENDÁRIO */
 .event-status-planned {
   background: #e0f2fe;
   color: #0369a1;
