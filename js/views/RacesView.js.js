@@ -1,0 +1,87 @@
+import { StorageService } from '../services/StorageService.js';
+import { RaceModal } from '../components/RaceModal.js';
+
+export class RacesView {
+  render(container) {
+    this.container = container;
+    const races = StorageService.getRaces();
+
+    // Ordenar provas por data (mais próxima primeiro)
+    races.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    container.innerHTML = `
+      <div class="page-title-bar">
+        <div>
+          <h1 class="page-title">Provas & Metas</h1>
+          <p class="card-subtext">Acompanhe seus desafios e contagem regressiva para os dias de prova.</p>
+        </div>
+        <button class="btn" id="btn-new-race">+ Nova Prova</button>
+      </div>
+
+      <div class="workouts-grid" id="races-list-grid"></div>
+    `;
+
+    document.getElementById('btn-new-race').onclick = () => {
+      RaceModal.openCreateOrEdit(null, () => this.render(container));
+    };
+
+    const grid = document.getElementById('races-list-grid');
+
+    if (races.length === 0) {
+      grid.innerHTML = `<div class="card empty-state"><p>Nenhuma prova cadastrada no momento.</p></div>`;
+      return;
+    }
+
+    races.forEach(race => {
+      const card = document.createElement('div');
+      card.className = 'card workout-card';
+
+      const formattedDate = new Date(race.date + 'T00:00:00').toLocaleDateString('pt-BR');
+      const daysRemaining = StorageService.getDaysRemaining(race.date);
+
+      let countdownBadge = '';
+      if (daysRemaining > 0) {
+        countdownBadge = `<span class="status-badge status-planned">FALTAM ${daysRemaining} DIAS</span>`;
+      } else if (daysRemaining === 0) {
+        countdownBadge = `<span class="status-badge status-completed">É HOJE!</span>`;
+      } else {
+        countdownBadge = `<span class="status-badge status-missed">REALIZADA</span>`;
+      }
+
+      card.innerHTML = `
+        <div class="workout-card-header">
+          <div>
+            <div class="workout-type">🏁 ${race.name}</div>
+            <div class="workout-date">${formattedDate} • ${race.distance} km ${race.location ? `• 📍 ${race.location}` : ''}</div>
+          </div>
+          ${countdownBadge}
+        </div>
+
+        <div class="workout-card-body">
+          <div class="workout-meta-row" style="margin-top: 8px;">
+            <span>🎯 META DE TEMPO: <strong>${race.targetTime || 'Não informada'}</strong></span>
+          </div>
+          ${race.notes ? `<p class="workout-desc" style="margin-top: 6px;">${race.notes}</p>` : ''}
+        </div>
+
+        <div class="workout-card-footer">
+          <button class="btn btn-sm btn-secondary btn-edit-race">Editar</button>
+          <button class="btn btn-sm btn-danger btn-delete-race">Excluir</button>
+        </div>
+      `;
+
+      card.querySelector('.btn-edit-race').onclick = () => {
+        RaceModal.openCreateOrEdit(race, () => this.render(this.container));
+      };
+
+      card.querySelector('.btn-delete-race').onclick = () => {
+        if (confirm(`Tem certeza que deseja excluir a prova "${race.name}"?`)) {
+          StorageService.deleteRace(race.id);
+          this.render(this.container);
+        }
+      };
+
+      grid.appendChild(card);
+    });
+  }
+}
