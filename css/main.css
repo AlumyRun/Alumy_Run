@@ -65,6 +65,7 @@ body {
   z-index: 100;
   box-shadow: var(--shadow-md);
   transition: var(--transition);
+  overflow: hidden; /* Força todo conteúdo interno a respeitar os limites do sidebar */
 }
 
 /* BOTÃO DE TOGGLE PENDURADO NA DIVISA SIDEBAR x CONTEÚDO */
@@ -106,7 +107,6 @@ body {
   align-items: center;
   gap: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  overflow: hidden;
   white-space: nowrap;
 }
 
@@ -120,6 +120,11 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.brand-text {
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
 }
 
 .brand-title {
@@ -159,12 +164,16 @@ body {
   cursor: pointer;
   transition: var(--transition);
   white-space: nowrap;
-  overflow: hidden;
 }
 
 .nav-item i {
   min-width: 20px;
   height: 20px;
+}
+
+.nav-text {
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
 }
 
 .nav-item:hover {
@@ -179,6 +188,7 @@ body {
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
+/* RODAPÉ DO SIDEBAR */
 .sidebar-footer {
   padding: 16px 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -186,7 +196,11 @@ body {
   font-size: 0.8rem;
   background: rgba(0, 0, 0, 0.15);
   white-space: nowrap;
-  overflow: hidden;
+}
+
+.footer-text {
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
 }
 
 .sidebar-footer strong {
@@ -206,29 +220,47 @@ body {
 }
 
 /* ==========================================================================
-   ESTADO RECOLHIDO (COLLAPSED)
+   ESTADO RECOLHIDO (REGRAS DE OCURTAMENTO DE TEXTO E CENTRALIZAÇÃO DE ÍCONES)
    ========================================================================== */
 body.sidebar-collapsed .sidebar {
   width: 70px;
 }
 
+/* Oculta completamente todos os textos do menu, marca e rodapé */
 body.sidebar-collapsed .brand-text,
 body.sidebar-collapsed .nav-text,
-body.sidebar-collapsed .sidebar-footer {
-  opacity: 0;
-  display: none;
+body.sidebar-collapsed .footer-text {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  display: none !important;
 }
 
+/* Centraliza o cabeçalho e os ícones dentro do espaço de 70px */
 body.sidebar-collapsed .brand {
-  padding: 22px 14px;
+  padding: 22px 0;
   justify-content: center;
+}
+
+body.sidebar-collapsed .nav-menu {
+  padding: 18px 0;
+  align-items: center;
 }
 
 body.sidebar-collapsed .nav-item {
   padding: 11px 0;
+  width: 48px;
+  height: 48px;
+  justify-content: center;
+  gap: 0;
+}
+
+body.sidebar-collapsed .sidebar-footer {
+  padding: 16px 0;
+  display: flex;
   justify-content: center;
 }
 
+/* Reajuste automático de margem do conteúdo principal */
 body.sidebar-collapsed .main-content {
   margin-left: 70px;
   width: calc(100% - 70px);
