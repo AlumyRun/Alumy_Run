@@ -61,10 +61,10 @@ body {
   z-index: 100;
   box-shadow: var(--shadow-md);
   transition: var(--transition);
-  overflow: hidden;
+  /* Sem overflow:hidden aqui para não cortar o botão pendurado */
 }
 
-/* BOTÃO DE TOGGLE PENDURADO NA BORDA */
+/* BOTÃO DE TOGGLE PENDURADO NA BORDA (32px x 32px) */
 .sidebar-toggle {
   position: absolute;
   top: 50%;
@@ -80,7 +80,7 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 200;
+  z-index: 999; /* Garante que fique acima do conteúdo e sem cortes */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
@@ -104,6 +104,7 @@ body {
   gap: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .brand-icon {
@@ -145,6 +146,7 @@ body {
   flex-direction: column;
   gap: 6px;
   flex: 1;
+  overflow: hidden;
 }
 
 .sidebar .nav-item {
@@ -192,6 +194,7 @@ body {
   font-size: 0.8rem;
   background: rgba(0, 0, 0, 0.15);
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .footer-text {
@@ -355,7 +358,7 @@ body.sidebar-collapsed .main-content {
    NAVEGAÇÃO MOBILE (ESCONDIDA NO DESKTOP)
    ========================================================================== */
 .mobile-nav {
-  display: none !important; /* Força ocultamento total no Desktop */
+  display: none !important;
 }
 
 @media (max-width: 900px) {
