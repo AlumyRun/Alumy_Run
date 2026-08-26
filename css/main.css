@@ -67,13 +67,14 @@ body {
   transition: var(--transition);
 }
 
-/* BOTÃO TOGGLE REDONDO NA BORDA */
+/* BOTÃO DE TOGGLE PENDURADO NA DIVISA SIDEBAR x CONTEÚDO */
 .sidebar-toggle {
   position: absolute;
-  top: 24px;
-  right: -14px;
-  width: 28px;
-  height: 28px;
+  top: 50%;
+  right: -16px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--primary);
   color: #ffffff;
@@ -82,19 +83,20 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 110;
+  z-index: 200;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  transition: var(--transition);
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .sidebar-toggle:hover {
   background: var(--primary-dark);
-  transform: scale(1.1);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .sidebar-toggle i {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
 }
 
 /* MARCA / BRAND */
@@ -193,7 +195,7 @@ body {
   font-size: 0.9rem;
 }
 
-/* ÁREA CONTEÚDO PRINCIPAL COM TRANSIÇÃO DYNAMIC MARGIN */
+/* ÁREA CONTEÚDO PRINCIPAL */
 .main-content {
   margin-left: 250px;
   flex: 1;
@@ -206,30 +208,28 @@ body {
 /* ==========================================================================
    ESTADO RECOLHIDO (COLLAPSED)
    ========================================================================== */
-.sidebar.collapsed {
+body.sidebar-collapsed .sidebar {
   width: 70px;
 }
 
-.sidebar.collapsed .brand-text,
-.sidebar.collapsed .nav-text,
-.sidebar.collapsed .sidebar-footer {
+body.sidebar-collapsed .brand-text,
+body.sidebar-collapsed .nav-text,
+body.sidebar-collapsed .sidebar-footer {
   opacity: 0;
-  pointer-events: none;
   display: none;
 }
 
-.sidebar.collapsed .brand {
+body.sidebar-collapsed .brand {
   padding: 22px 14px;
   justify-content: center;
 }
 
-.sidebar.collapsed .nav-item {
+body.sidebar-collapsed .nav-item {
   padding: 11px 0;
   justify-content: center;
 }
 
-/* REAJUSTE AUTOMÁTICO DO CONTEÚDO E HEADER QUANDO RECOLHIDO */
-.main-content.expanded {
+body.sidebar-collapsed .main-content {
   margin-left: 70px;
   width: calc(100% - 70px);
 }
@@ -330,7 +330,7 @@ body {
   .sidebar-toggle { display: none; }
   .top-header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .header-search { max-width: 100%; }
-  .main-content, .main-content.expanded {
+  .main-content, body.sidebar-collapsed .main-content {
     margin-left: 0;
     width: 100%;
     padding: 16px 16px 90px 16px;
