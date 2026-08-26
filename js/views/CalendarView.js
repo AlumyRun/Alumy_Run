@@ -12,7 +12,7 @@ export class CalendarView {
       <div class="page-title-bar">
         <div>
           <h1 class="page-title">Calendário de Treinos</h1>
-          <p class="card-subtext">Visão mensal dos treinos e eventos programados.</p>
+          <p class="card-subtext">Visão geral do planejamento mensal e histórico.</p>
         </div>
       </div>
 
@@ -37,16 +37,14 @@ export class CalendarView {
     const cellsEl = document.getElementById('calendar-cells');
     if (!cellsEl) return;
 
-    // Renderiza um mês padrão limpo
-    const daysInMonth = 31;
-    for (let day = 1; day <= daysInMonth; day++) {
+    for (let day = 1; day <= 31; day++) {
       const cell = document.createElement('div');
       cell.className = 'calendar-cell';
       cell.innerHTML = `<div class="calendar-date-num">${day}</div><div class="calendar-events-container"></div>`;
-      
+
       const dayFormatted = day < 10 ? `0${day}` : `${day}`;
-      const dayWorkouts = workouts.filter(w => w.date.endsWith(`-${dayFormatted}`));
-      
+      const dayWorkouts = workouts.filter(w => w.date && w.date.endsWith(`-${dayFormatted}`));
+
       const eventsContainer = cell.querySelector('.calendar-events-container');
       dayWorkouts.forEach(w => {
         cell.classList.add('has-workout');
