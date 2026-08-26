@@ -29,7 +29,6 @@ class App {
 
     this.bindEvents();
     this.initSidebarState();
-
     this.updateSidebarInfo();
     this.switchView('dashboard');
   }
@@ -116,15 +115,11 @@ class App {
   updateSidebarInfo() {
     const profile = StorageService.getProfile();
     const el = document.getElementById('sidebar-athlete-name');
-    if (el && profile) el.innerText = profile.name;
+    if (el && profile) el.innerText = profile.name || 'Rafael';
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new App();
   window.app.init();
-});
-document.addEventListener('DOMContentLoaded', () => {
-  window.app = new App();
-  window.app.init();
-});
+});v
