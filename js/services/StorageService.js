@@ -1,25 +1,70 @@
 export class StorageService {
-  // Suporte e leitura segura para chaves antigas e novas
-  static getWorkouts() {
-    try {
-      const data = localStorage.getItem('runner_workouts') || localStorage.getItem('alumy_workouts');
-      if (data) {
-        return JSON.parse(data);
-      }
-    } catch (e) {
-      console.error('Erro ao ler treinos do LocalStorage:', e);
+  static STORAGE_KEY_WORKOUTS = 'runner_workouts';
+  static STORAGE_KEY_PROFILE = 'runner_profile';
+
+  static init() {
+    if (!localStorage.getItem(this.STORAGE_KEY_WORKOUTS)) {
+      const defaultWorkouts = [
+        {
+          id: 'w_1',
+          date: '2026-08-27',
+          type: 'Intervalado',
+          status: 'planned',
+          planned: { distance: 8, targetPaceMin: '3:55', targetPaceMax: '4:05' },
+          completed: { distance: 0, time: '', pace: '', feeling: '' }
+        },
+        {
+          id: 'w_2',
+          date: '2026-08-28',
+          type: 'Limiar',
+          status: 'planned',
+          planned: { distance: 10, targetPaceMin: '4:15', targetPaceMax: '4:25' },
+          completed: { distance: 0, time: '', pace: '', feeling: '' }
+        },
+        {
+          id: 'w_3',
+          date: '2026-08-25',
+          type: 'Rodagem Leve',
+          status: 'completed',
+          planned: { distance: 6, targetPaceMin: '4:40', targetPaceMax: '4:50' },
+          completed: { distance: 6.1, time: '28:30', pace: '4:40', feeling: 'Ótimo' }
+        }
+      ];
+      localStorage.setItem(this.STORAGE_KEY_WORKOUTS, JSON.stringify(defaultWorkouts));
     }
-    return [];
+
+    if (!localStorage.getItem(this.STORAGE_KEY_PROFILE)) {
+      const defaultProfile = {
+        name: 'Rafael',
+        weeklyGoalKm: 40,
+        records: [
+          { distance: '5 km', time: '20:38', date: '2026-05-10' },
+          { distance: '10 km', time: '46:24', date: '2026-06-15' },
+          { distance: '21.1 km', time: '1:42:57', date: '2026-03-20' }
+        ],
+        races: [
+          {
+            id: 'r_1',
+            label: 'Prova 7k (Sub-30)',
+            date: '2026-09-26',
+            distance: '7 km',
+            targetTime: '30:00',
+            completed: false
+          }
+        ]
+      };
+      localStorage.setItem(this.STORAGE_KEY_PROFILE, JSON.stringify(defaultProfile));
+    }
+  }
+
+  static getWorkouts() {
+    const data = localStorage.getItem(this.STORAGE_KEY_WORKOUTS) || localStorage.getItem('alumy_workouts');
+    return data ? JSON.parse(data) : [];
   }
 
   static saveWorkouts(workouts) {
-    try {
-      const json = JSON.stringify(workouts);
-      localStorage.setItem('runner_workouts', json);
-      localStorage.setItem('alumy_workouts', json);
-    } catch (e) {
-      console.error('Erro ao salvar treinos no LocalStorage:', e);
-    }
+    localStorage.setItem(this.STORAGE_KEY_WORKOUTS, JSON.stringify(workouts));
+    localStorage.setItem('alumy_workouts', JSON.stringify(workouts));
   }
 
   static addWorkout(workout) {
@@ -44,64 +89,12 @@ export class StorageService {
   }
 
   static getProfile() {
-    try {
-      const data = localStorage.getItem('runner_profile') || localStorage.getItem('alumy_profile');
-      if (data) {
-        return JSON.parse(data);
-      }
-    } catch (e) {
-      console.error('Erro ao ler perfil do LocalStorage:', e);
-    }
-    return {
-      name: 'Rafael',
-      weeklyGoalKm: 40,
-      records: [
-        { distance: '5 km', time: '20:38', date: '2026-05-10' },
-        { distance: '10 km', time: '46:24', date: '2026-06-15' },
-        { distance: '21.1 km', time: '1:42:57', date: '2026-03-20' }
-      ],
-      races: [
-        { id: 'r1', label: 'Prova 7k', date: '2026-09-26', distance: '7 km', targetTime: '30:00', completed: false }
-      ]
-    };
+    const data = localStorage.getItem(this.STORAGE_KEY_PROFILE) || localStorage.getItem('alumy_profile');
+    return data ? JSON.parse(data) : {};
   }
 
   static saveProfile(profile) {
-    try {
-      const json = JSON.stringify(profile);
-      localStorage.setItem('runner_profile', json);
-      localStorage.setItem('alumy_profile', json);
-    } catch (e) {
-      console.error('Erro ao salvar perfil no LocalStorage:', e);
-    }
-  }
-
-  static init() {
-    // Garante inicialização sem sobrescrever dados do usuário
-    const workouts = this.getWorkouts();
-    if (!workouts || workouts.length === 0) {
-      const defaultWorkouts = [
-        {
-          id: 'w_1',
-          date: '2026-08-27',
-          type: 'Intervalado',
-          status: 'planned',
-          planned: { distance: 8, targetPaceMin: '3:55', targetPaceMax: '4:05' },
-          completed: { distance: 0, time: '', pace: '', feeling: '' }
-        },
-        {
-          id: 'w_2',
-          date: '2026-08-28',
-          type: 'Limiar',
-          status: 'planned',
-          planned: { distance: 10, targetPaceMin: '4:15', targetPaceMax: '4:25' },
-          completed: { distance: 0, time: '', pace: '', feeling: '' }
-        }
-      ];
-      this.saveWorkouts(defaultWorkouts);
-    }
-
-    const profile = this.getProfile();
-    this.saveProfile(profile);
+    localStorage.setItem(this.STORAGE_KEY_PROFILE, JSON.stringify(profile));
+    localStorage.setItem('alumy_profile', JSON.stringify(profile));
   }
 }
