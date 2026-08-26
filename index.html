@@ -22,26 +22,54 @@
 </head>
 <body>
 
-  <!-- SIDEBAR LATERAL (DESKTOP) -->
-  <aside class="sidebar">
+  <!-- SIDEBAR LATERAL COLLAPSIBLE (DESKTOP) -->
+  <aside class="sidebar" id="sidebar">
+    <!-- BOTÃO DE TOGGLE/RECOLHER -->
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Recolher menu">
+      <i data-feather="chevron-left" id="toggle-icon"></i>
+    </button>
+
     <div class="brand">
       <div class="brand-icon"><i data-feather="activity"></i></div>
-      <div>
+      <div class="brand-text">
         <div class="brand-title">Alumy Run</div>
         <div class="brand-subtitle">Running</div>
       </div>
     </div>
+
     <nav class="nav-menu">
-      <a class="nav-item active" data-target="dashboard"><i data-feather="home"></i> <span>Dashboard</span></a>
-      <a class="nav-item" data-target="calendar"><i data-feather="calendar"></i> <span>Calendário</span></a>
-      <a class="nav-item" data-target="workouts"><i data-feather="repeat"></i> <span>Treinos</span></a>
-      <a class="nav-item" data-target="evolution"><i data-feather="trending-up"></i> <span>Evolução</span></a>
-      <a class="nav-item" data-target="records"><i data-feather="award"></i> <span>RPs</span></a>
-      <a class="nav-item" data-target="races"><i data-feather="flag"></i> <span>Provas</span></a>
-      <a class="nav-item" data-target="profile"><i data-feather="user"></i> <span>Perfil</span></a>
+      <a class="nav-item active" data-target="dashboard" title="Dashboard">
+        <i data-feather="home"></i>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a class="nav-item" data-target="calendar" title="Calendário">
+        <i data-feather="calendar"></i>
+        <span class="nav-text">Calendário</span>
+      </a>
+      <a class="nav-item" data-target="workouts" title="Treinos">
+        <i data-feather="repeat"></i>
+        <span class="nav-text">Treinos</span>
+      </a>
+      <a class="nav-item" data-target="evolution" title="Evolução">
+        <i data-feather="trending-up"></i>
+        <span class="nav-text">Evolução</span>
+      </a>
+      <a class="nav-item" data-target="records" title="RPs">
+        <i data-feather="award"></i>
+        <span class="nav-text">RPs</span>
+      </a>
+      <a class="nav-item" data-target="races" title="Provas">
+        <i data-feather="flag"></i>
+        <span class="nav-text">Provas</span>
+      </a>
+      <a class="nav-item" data-target="profile" title="Perfil">
+        <i data-feather="user"></i>
+        <span class="nav-text">Perfil</span>
+      </a>
     </nav>
+
     <div class="sidebar-footer">
-      <small>Atleta em Foco:</small>
+      <small class="footer-label">Atleta em Foco:</small>
       <strong id="sidebar-athlete-name">Rafael</strong>
     </div>
   </aside>
@@ -56,7 +84,7 @@
   </nav>
 
   <!-- ÁREA PRINCIPAL COM HEADER SAAS -->
-  <main class="main-content">
+  <main class="main-content" id="main-content">
     <!-- HEADER SUPERIOR -->
     <header class="top-header">
       <div class="header-user-info">
