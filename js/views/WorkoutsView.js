@@ -8,13 +8,15 @@ export class WorkoutsView {
   }
 
   render(container) {
-    const workouts = StorageService.getWorkouts();
+    const rawWorkouts = StorageService.getWorkouts();
+    // ORDENAÇÃO AUTOMÁTICA OBRIGATÓRIA POR DATA
+    const workouts = Workout.sortWorkouts(rawWorkouts);
 
     container.innerHTML = `
       <div class="page-title-bar">
         <div>
           <h1 class="page-title">Treinos Agendados & Histórico</h1>
-          <p class="card-subtext">Listagem completa do plano e atividades registradas.</p>
+          <p class="card-subtext">Listagem ordenada por data (Futuros $\rightarrow$ Passados).</p>
         </div>
         <button class="btn" id="workouts-btn-add"><i data-feather="plus"></i> Novo Treino</button>
       </div>
@@ -43,12 +45,13 @@ export class WorkoutsView {
 
       const card = document.createElement('div');
       card.className = 'card';
+      card.setAttribute('data-id', w.id);
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
           <div>
             <span class="badge ${badgeClass}">${isCompleted ? '🟢 Concluído' : '🔵 Planejado'}</span>
             <h3 style="margin-top: 6px; font-size: 1.1rem; color: var(--text-primary);">${w.type}</h3>
-            <p style="font-size: 0.825rem; color: var(--text-secondary);">Data: ${w.date}</p>
+            <p style="font-size: 0.825rem; color: var(--text-secondary);">Data: <strong>${w.date}</strong></p>
           </div>
           <div style="display: flex; gap: 8px;">
             <button class="btn btn-secondary btn-edit"><i data-feather="edit-2"></i> ${isCompleted ? 'Editar' : 'Concluir'}</button>
@@ -56,7 +59,6 @@ export class WorkoutsView {
           </div>
         </div>
 
-        <!-- COMPARAÇÃO PLANEJADO X REALIZADO SAAS -->
         <div class="comparison-box">
           <div class="comp-col">
             <h5>Planejado</h5>
