@@ -6,6 +6,7 @@ import { EvolutionView } from './views/EvolutionView.js';
 import { RecordsView } from './views/RecordsView.js';
 import { RacesView } from './views/RacesView.js';
 import { ProfileView } from './views/ProfileView.js';
+import { SearchManager } from './components/SearchManager.js';
 
 class App {
   constructor() {
@@ -15,10 +16,10 @@ class App {
   }
 
   init() {
-    // 1. Inicializa o LocalStorage com os dados do atleta e treinos
+    // 1. Inicializa o LocalStorage mantendo a compatibilidade dos dados
     StorageService.init();
 
-    // 2. Instancia as Views
+    // 2. Instancia as Views da SPA
     this.views = {
       dashboard: new DashboardView(this),
       calendar: new CalendarView(this),
@@ -29,17 +30,17 @@ class App {
       profile: new ProfileView(this)
     };
 
-    // 3. Registra eventos de navegação, rotas e estado do Sidebar
+    // 3. Registra os gerenciadores globais (Pesquisa e Sidebar)
     this.bindEvents();
     this.initSidebarState();
+    SearchManager.init(this);
 
-    // 4. Carrega a view inicial e atualiza marcas
+    // 4. Carrega a view inicial
     this.updateSidebarInfo();
     this.switchView('dashboard');
   }
 
   bindEvents() {
-    // Eventos de clique do Menu Lateral e Navegação Mobile
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
         const targetView = e.currentTarget.dataset.target;
@@ -47,7 +48,6 @@ class App {
       });
     });
 
-    // Evento direto do Botão de Toggle do Sidebar
     const toggleBtn = document.getElementById('sidebar-toggle');
     if (toggleBtn) {
       toggleBtn.addEventListener('click', (e) => {
@@ -57,14 +57,9 @@ class App {
     }
   }
 
-  // Restaura e aplica a preferência salva no LocalStorage
   initSidebarState() {
     const savedState = localStorage.getItem('sidebarCollapsed');
-    if (savedState === 'true') {
-      this.setSidebarState(true);
-    } else {
-      this.setSidebarState(false);
-    }
+    this.setSidebarState(savedState === 'true');
   }
 
   toggleSidebar() {
@@ -79,19 +74,14 @@ class App {
 
     if (collapsed) {
       document.body.classList.add('sidebar-collapsed');
-      if (toggleBtn) {
-        toggleBtn.setAttribute('aria-label', 'Expandir menu');
-      }
+      if (toggleBtn) toggleBtn.setAttribute('aria-label', 'Expandir menu');
     } else {
       document.body.classList.remove('sidebar-collapsed');
-      if (toggleBtn) {
-        toggleBtn.setAttribute('aria-label', 'Recolher menu');
-      }
+      if (toggleBtn) toggleBtn.setAttribute('aria-label', 'Recolher menu');
     }
 
     this.updateToggleIcon();
 
-    // Redimensiona gráficos caso esteja na tela de evolução
     if (this.currentView === 'evolution') {
       setTimeout(() => window.dispatchEvent(new Event('resize')), 260);
     }
@@ -101,15 +91,8 @@ class App {
     const toggleBtn = document.getElementById('sidebar-toggle');
     if (!toggleBtn) return;
 
-    if (this.isSidebarCollapsed) {
-      toggleBtn.innerHTML = '<i data-feather="chevron-right"></i>';
-    } else {
-      toggleBtn.innerHTML = '<i data-feather="chevron-left"></i>';
-    }
-
-    if (window.feather) {
-      feather.replace();
-    }
+    toggleBtn.innerHTML = this.isSidebarCollapsed ? '<i data-feather="chevron-right"></i>' : '<i data-feather="chevron-left"></i>';
+    if (window.feather) feather.replace();
   }
 
   switchView(viewName) {
@@ -117,21 +100,17 @@ class App {
 
     this.currentView = viewName;
 
-    // Oculta todas as seções e remove classe active
     document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
-    // Ativa a view solicitada
     const targetElement = document.getElementById(`view-${viewName}`);
     if (targetElement) {
       targetElement.style.display = 'block';
       this.views[viewName].render(targetElement);
     }
 
-    // Marca o menu ativo
     document.querySelectorAll(`.nav-item[data-target="${viewName}"]`).forEach(el => el.classList.add('active'));
 
-    // Recarrega ícones feather
     if (window.feather) feather.replace();
   }
 
@@ -147,7 +126,6 @@ class App {
   }
 }
 
-// Inicializa a aplicação quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new App();
   window.app.init();
