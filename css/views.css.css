@@ -1,0 +1,125 @@
+/* ==========================================================================
+   ESTILOS DO CALENDÁRIO
+   ========================================================================== */
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.calendar-month-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  min-width: 150px;
+  text-align: center;
+}
+
+.calendar-card {
+  padding: 16px;
+}
+
+.calendar-header-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.cal-head {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  padding: 8px 0;
+}
+
+.calendar-body-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.cal-day-cell {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-height: 100px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.cal-day-empty {
+  background: transparent;
+  border-color: transparent;
+}
+
+.cal-day-today {
+  border: 2px solid var(--primary);
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.cal-day-number {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.cal-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cal-event-tag {
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+}
+
+.cal-event-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* CORES DOS STATUS DOS TREINOS NO CALENDÁRIO */
+.event-status-planned {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-left: 3px solid #0284c7;
+}
+
+.event-status-completed {
+  background: #d1fae5;
+  color: #047857;
+  border-left: 3px solid #10b981;
+}
+
+.event-status-partial {
+  background: #ffedd5;
+  color: #c2410c;
+  border-left: 3px solid #f97316;
+}
+
+.event-status-missed {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-left: 3px solid #ef4444;
+}
+
+@media (max-width: 768px) {
+  .cal-day-cell {
+    min-height: 70px;
+    padding: 4px;
+  }
+  .cal-event-tag span {
+    display: none;
+  }
+}
