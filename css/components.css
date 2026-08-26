@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   background: var(--surface);
   padding: 14px 24px;
   border-radius: var(--radius-md);
@@ -79,20 +79,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 12px;
 }
 
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
 }
 
 .card-subtext {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .btn {
@@ -114,16 +114,43 @@
   box-shadow: var(--shadow-sm);
 }
 
-.card-title {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-secondary);
-  font-weight: 700;
-  margin-bottom: 6px;
-}
+/* RESPONSIVIDADE COMPACTA DO HEADER NO MOBILE */
+@media (max-width: 768px) {
+  .top-header {
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
 
-.card-value {
+  .header-user-info h2 {
+    font-size: 0.95rem;
+  }
+
+  .header-user-info span {
+    font-size: 0.725rem;
+  }
+
+  .header-search {
+    order: 3;
+    max-width: 100%;
+    padding: 6px 10px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .header-icon-btn, .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .page-title {
+    font-size: 1.2rem;
+  }
+}
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--text-primary);
