@@ -1,6 +1,4 @@
 import { StorageService } from '../services/StorageService.js';
-import { ModalManager } from '../components/ModalManager.js';
-import { Workout } from '../models/Workout.js';
 
 export class DashboardView {
   constructor(app) {
@@ -8,90 +6,74 @@ export class DashboardView {
   }
 
   render(container) {
-    const profile = StorageService.getProfile();
     const workouts = StorageService.getWorkouts();
+    const profile = StorageService.getProfile();
 
     const completed = workouts.filter(w => w.status === 'completed');
-    const totalKm = completed.reduce((acc, curr) => acc + (curr.completed?.distance || 0), 0);
-    const completionRate = workouts.length > 0 ? Math.round((completed.length / workouts.length) * 100) : 0;
+    const planned = workouts.filter(w => w.status === 'planned');
 
-    // Próximo treino planejado
-    const nextWorkout = workouts.find(w => w.status === 'planned');
-
-    // Próxima Prova
-    const nextRace = profile.races.length > 0 ? profile.races[0] : null;
+    const totalKm = completed.reduce((acc, w) => acc + (parseFloat(w.completed.distance) || 0), 0);
+    const nextWorkout = planned.length > 0 ? planned[0] : null;
 
     container.innerHTML = `
       <div class="page-title-bar">
         <div>
-          <h1 class="page-title">Olá, ${profile.name} 👋</h1>
-          <p class="card-subtext">Painel geral de treinamento e métricas de desempenho.</p>
+          <h1 class="page-title">Olá, ${profile.name || 'Rafael'} 👋</h1>
+          <p class="card-subtext">Vamos para mais um treino? Confira seu resumo de performance.</p>
         </div>
-        <button class="btn" id="dash-btn-add"><i data-feather="plus"></i> Novo Treino</button>
       </div>
 
-      <!-- CARDS DE MÉTRICAS PRINCIPAIS -->
+      <!-- CARDS DE METRICAS -->
       <div class="grid-metrics">
         <div class="card">
-          <div class="card-title">Km Realizados</div>
+          <div class="card-title">Volume Total</div>
           <div class="card-value">${totalKm.toFixed(1)} km</div>
-          <div class="card-subtext">Meta Semanal: ${profile.weeklyVolume} km</div>
+          <div class="card-subtext">Distância percorrida acumulada</div>
         </div>
         <div class="card">
           <div class="card-title">Treinos Concluídos</div>
-          <div class="card-value">${completed.length}/${workouts.length}</div>
-          <div class="card-subtext">Taxa de Conclusão: ${completionRate}%</div>
+          <div class="card-value">${completed.length} / ${workouts.length}</div>
+          <div class="card-subtext">Meta da semana em andamento</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Pace Médio Recente</div>
+          <div class="card-value">${completed.length > 0 ? completed[0].completed.pace : '4:40'}/km</div>
+          <div class="card-subtext">Última sessão de treino</div>
         </div>
         <div class="card">
           <div class="card-title">Próxima Prova</div>
-          <div class="card-value">${nextRace ? nextRace.distance : '--'}</div>
-          <div class="card-subtext">Meta: ${nextRace ? nextRace.targetTime : '--'}</div>
-        </div>
-        <div class="card">
-          <div class="card-title">Frequência Semanal</div>
-          <div class="card-value">${completed.length} treinos</div>
-          <div class="card-subtext">Meta: ${profile.weeklyFrequency} treinos/sem</div>
+          <div class="card-value">26 SET</div>
+          <div class="card-subtext">Sub-30 (7 km)</div>
         </div>
       </div>
 
-      <!-- HERO: PRÓXIMO TREINO -->
-      <div class="card-title" style="margin-bottom: 12px;">Próximo Treino Agendado</div>
+      <!-- CARD HERO DE PROXIMO TREINO -->
       ${nextWorkout ? `
         <div class="hero-workout">
           <div class="hero-info">
-            <span class="badge badge-planned">🔵 Treino Planejado</span>
-            <h3>${nextWorkout.type}</h3>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">${nextWorkout.planned.objective}</p>
+            <span class="badge badge-planned">🔵 Próximo Treino Agendado</span>
+            <h3>${nextWorkout.type} — ${nextWorkout.planned.distance} km</h3>
+            <p style="color: #94a3b8; font-size: 0.9rem;">Data: ${nextWorkout.date}</p>
             <div class="hero-meta">
-              <span>📅 Data: <strong>${nextWorkout.date}</strong></span>
-              <span>📏 Distância: <strong>${nextWorkout.planned.distance} km</strong></span>
-              <span>⏱️ Pace Alvo: <strong>${nextWorkout.planned.targetPaceMin} - ${nextWorkout.planned.targetPaceMax}/km</strong></span>
+              <span>🎯 Pace Alvo: ${nextWorkout.planned.targetPaceMin} - ${nextWorkout.planned.targetPaceMax}/km</span>
+              <span>🏃 Modalidade: Corrida de Rua</span>
             </div>
           </div>
           <div>
-            <button class="btn" id="btn-hero-complete"><i data-feather="check-circle"></i> Marcar como Concluído</button>
+            <button class="btn" id="btn-hero-complete">Marcar como Concluído</button>
           </div>
         </div>
       ` : `
-        <div class="card" style="text-align: center; color: var(--text-muted); padding: 32px;">
-          Nenhum treino pendente no plano atual! 🎉
+        <div class="card" style="margin-bottom: 24px; text-align: center; color: var(--text-muted);">
+          Nenhum treino futuro agendado no momento.
         </div>
       `}
     `;
 
-    document.getElementById('dash-btn-add').onclick = () => {
-      ModalManager.openAddWorkoutModal((newW) => {
-        StorageService.addWorkout(newW);
-        this.app.reloadCurrentView();
-      });
-    };
-
-    if (nextWorkout) {
-      document.getElementById('btn-hero-complete').onclick = () => {
-        ModalManager.openCompleteWorkoutModal(nextWorkout, (updatedW) => {
-          StorageService.updateWorkout(updatedW);
-          this.app.reloadCurrentView();
-        });
+    const btnHero = document.getElementById('btn-hero-complete');
+    if (btnHero && nextWorkout) {
+      btnHero.onclick = () => {
+        this.app.switchView('workouts');
       };
     }
   }
