@@ -15,7 +15,7 @@
 </head>
 <body>
 
-  <!-- SIDEBAR FIXA À ESQUERDA -->
+  <!-- SIDEBAR FIXA À ESQUERDA (DESKTOP/TABLET) -->
   <aside class="sidebar" id="sidebar">
     <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Recolher menu">
       <span class="toggle-icon">◀</span>
@@ -68,6 +68,30 @@
     </div>
   </aside>
 
+  <!-- NAVBAR FIXA NO RODAPÉ (MOBILE) -->
+  <nav class="mobile-bottom-nav">
+    <a class="nav-item active" data-target="dashboard">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-text">Dash</span>
+    </a>
+    <a class="nav-item" data-target="calendar">
+      <span class="nav-icon">📅</span>
+      <span class="nav-text">Agenda</span>
+    </a>
+    <a class="nav-item" data-target="workouts">
+      <span class="nav-icon">🏃</span>
+      <span class="nav-text">Treinos</span>
+    </a>
+    <a class="nav-item" data-target="races">
+      <span class="nav-icon">🏁</span>
+      <span class="nav-text">Provas</span>
+    </a>
+    <a class="nav-item" data-target="profile">
+      <span class="nav-icon">👤</span>
+      <span class="nav-text">Perfil</span>
+    </a>
+  </nav>
+
   <!-- ÁREA PRINCIPAL COM HEADER -->
   <main class="main-content" id="main-content">
     <header class="top-header">
@@ -78,7 +102,7 @@
       
       <div class="header-search">
         <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Pesquisar treino, prova ou atividade..." class="search-input" readonly>
+        <input type="text" placeholder="Pesquisar treino, prova ou atividade..." class="search-input">
       </div>
 
       <div class="header-actions">
