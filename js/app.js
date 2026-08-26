@@ -11,10 +11,11 @@ class App {
   constructor() {
     this.currentView = 'dashboard';
     this.views = {};
+    this.isSidebarCollapsed = false;
   }
 
   init() {
-    // 1. Inicializa o LocalStorage com os dados iniciais reais
+    // 1. Inicializa o LocalStorage com os dados do atleta e treinos
     StorageService.init();
 
     // 2. Instancia as Views
@@ -28,21 +29,75 @@ class App {
       profile: new ProfileView(this)
     };
 
-    // 3. Registra eventos globais de navegação e re-render
+    // 3. Registra eventos de navegação, rotas e estado do Sidebar
     this.bindEvents();
+    this.initSidebarState();
 
-    // 4. Carrega a view inicial e atualiza ícones
+    // 4. Carrega a view inicial e atualiza marcas
     this.updateSidebarInfo();
     this.switchView('dashboard');
   }
 
   bindEvents() {
+    // Eventos de clique do Menu Lateral e Navegação Mobile
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
         const targetView = e.currentTarget.dataset.target;
         this.switchView(targetView);
       });
     });
+
+    // Evento do Botão de Recolher/Expandir Sidebar
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => this.toggleSidebar());
+    }
+  }
+
+  // Persistência exclusiva do estado do Sidebar
+  initSidebarState() {
+    const savedState = localStorage.getItem('alumy_sidebar_collapsed');
+    if (savedState === 'true') {
+      this.setSidebarState(true);
+    } else {
+      this.setSidebarState(false);
+    }
+  }
+
+  toggleSidebar() {
+    this.setSidebarState(!this.isSidebarCollapsed);
+  }
+
+  setSidebarState(collapsed) {
+    this.isSidebarCollapsed = collapsed;
+    localStorage.setItem('alumy_sidebar_collapsed', collapsed ? 'true' : 'false');
+
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const toggleBtn = document.getElementById('sidebar-toggle');
+
+    if (collapsed) {
+      sidebar?.classList.add('collapsed');
+      mainContent?.classList.add('expanded');
+      if (toggleBtn) {
+        toggleBtn.setAttribute('aria-label', 'Expandir menu');
+        toggleBtn.innerHTML = '<i data-feather="chevron-right"></i>';
+      }
+    } else {
+      sidebar?.classList.remove('collapsed');
+      mainContent?.classList.remove('expanded');
+      if (toggleBtn) {
+        toggleBtn.setAttribute('aria-label', 'Recolher menu');
+        toggleBtn.innerHTML = '<i data-feather="chevron-left"></i>';
+      }
+    }
+
+    if (window.feather) feather.replace();
+    
+    // Dispara evento para redimensionar gráficos automaticamente caso a view ativa seja 'evolution'
+    if (this.currentView === 'evolution') {
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 260);
+    }
   }
 
   switchView(viewName) {
