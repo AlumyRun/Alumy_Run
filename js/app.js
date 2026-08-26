@@ -47,16 +47,19 @@ class App {
       });
     });
 
-    // Evento do Botão de Recolher/Expandir Sidebar
+    // Evento direto do Botão de Toggle do Sidebar
     const toggleBtn = document.getElementById('sidebar-toggle');
     if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => this.toggleSidebar());
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleSidebar();
+      });
     }
   }
 
-  // Persistência exclusiva do estado do Sidebar
+  // Restaura e aplica a preferência salva no LocalStorage
   initSidebarState() {
-    const savedState = localStorage.getItem('alumy_sidebar_collapsed');
+    const savedState = localStorage.getItem('sidebarCollapsed');
     if (savedState === 'true') {
       this.setSidebarState(true);
     } else {
@@ -70,33 +73,42 @@ class App {
 
   setSidebarState(collapsed) {
     this.isSidebarCollapsed = collapsed;
-    localStorage.setItem('alumy_sidebar_collapsed', collapsed ? 'true' : 'false');
+    localStorage.setItem('sidebarCollapsed', collapsed ? 'true' : 'false');
 
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
     const toggleBtn = document.getElementById('sidebar-toggle');
 
     if (collapsed) {
-      sidebar?.classList.add('collapsed');
-      mainContent?.classList.add('expanded');
+      document.body.classList.add('sidebar-collapsed');
       if (toggleBtn) {
         toggleBtn.setAttribute('aria-label', 'Expandir menu');
-        toggleBtn.innerHTML = '<i data-feather="chevron-right"></i>';
       }
     } else {
-      sidebar?.classList.remove('collapsed');
-      mainContent?.classList.remove('expanded');
+      document.body.classList.remove('sidebar-collapsed');
       if (toggleBtn) {
         toggleBtn.setAttribute('aria-label', 'Recolher menu');
-        toggleBtn.innerHTML = '<i data-feather="chevron-left"></i>';
       }
     }
 
-    if (window.feather) feather.replace();
-    
-    // Dispara evento para redimensionar gráficos automaticamente caso a view ativa seja 'evolution'
+    this.updateToggleIcon();
+
+    // Redimensiona gráficos caso esteja na tela de evolução
     if (this.currentView === 'evolution') {
       setTimeout(() => window.dispatchEvent(new Event('resize')), 260);
+    }
+  }
+
+  updateToggleIcon() {
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    if (!toggleBtn) return;
+
+    if (this.isSidebarCollapsed) {
+      toggleBtn.innerHTML = '<i data-feather="chevron-right"></i>';
+    } else {
+      toggleBtn.innerHTML = '<i data-feather="chevron-left"></i>';
+    }
+
+    if (window.feather) {
+      feather.replace();
     }
   }
 
