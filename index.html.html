@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALUMY RUN — Running</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/views.css">
+</head>
+<body>
+
+  <!-- SIDEBAR FIXA À ESQUERDA -->
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Recolher menu">
+      <span class="toggle-icon">◀</span>
+    </button>
+
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-text">
+        <div class="brand-title">ALUMY RUN</div>
+        <div class="brand-subtitle">Running</div>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <a class="nav-item active" data-target="dashboard">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a class="nav-item" data-target="calendar">
+        <span class="nav-icon">📅</span>
+        <span class="nav-text">Calendário</span>
+      </a>
+      <a class="nav-item" data-target="workouts">
+        <span class="nav-icon">🏃</span>
+        <span class="nav-text">Treinos</span>
+      </a>
+      <a class="nav-item" data-target="evolution">
+        <span class="nav-icon">📈</span>
+        <span class="nav-text">Evolução</span>
+      </a>
+      <a class="nav-item" data-target="records">
+        <span class="nav-icon">🏅</span>
+        <span class="nav-text">RPs</span>
+      </a>
+      <a class="nav-item" data-target="races">
+        <span class="nav-icon">🏁</span>
+        <span class="nav-text">Provas</span>
+      </a>
+      <a class="nav-item" data-target="profile">
+        <span class="nav-icon">👤</span>
+        <span class="nav-text">Perfil</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="footer-text">
+        <small class="footer-label">Atleta em Foco:</small>
+        <strong>Rafael</strong>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ÁREA PRINCIPAL COM HEADER -->
+  <main class="main-content" id="main-content">
+    <header class="top-header">
+      <div class="header-user-info">
+        <h2>Alumy Run</h2>
+        <span>Rafael — Atleta</span>
+      </div>
+      
+      <div class="header-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Pesquisar treino, prova ou atividade..." class="search-input" readonly>
+      </div>
+
+      <div class="header-actions">
+        <button class="header-icon-btn" title="Atualizar">🔄</button>
+        <button class="header-icon-btn" title="Notificações">🔔</button>
+        <div class="user-avatar">R</div>
+      </div>
+    </header>
+
+    <!-- SEÇÕES DA SPA -->
+    <section id="view-dashboard" class="view-section"></section>
+    <section id="view-calendar" class="view-section" style="display: none;"></section>
+    <section id="view-workouts" class="view-section" style="display: none;"></section>
+    <section id="view-evolution" class="view-section" style="display: none;"></section>
+    <section id="view-records" class="view-section" style="display: none;"></section>
+    <section id="view-races" class="view-section" style="display: none;"></section>
+    <section id="view-profile" class="view-section" style="display: none;"></section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
