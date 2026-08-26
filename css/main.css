@@ -33,7 +33,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* SIDEBAR LAYOUT */
+/* SIDEBAR LAYOUT (DESKTOP/TABLET) */
 .sidebar {
   width: 250px;
   background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
@@ -111,7 +111,7 @@ body {
   flex-direction: column;
   gap: 6px;
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .nav-item {
@@ -162,6 +162,11 @@ body {
   font-size: 0.9rem;
 }
 
+/* BOTTOM NAV (MOBILE - OCULTA NO DESKTOP) */
+.mobile-bottom-nav {
+  display: none;
+}
+
 /* ÁREA PRINCIPAL */
 .main-content {
   margin-left: 250px;
@@ -172,7 +177,7 @@ body {
   transition: var(--transition);
 }
 
-/* ESTADO RECOLHIDO DO SIDEBAR */
+/* ESTADO RECOLHIDO DO SIDEBAR (DESKTOP) */
 body.sidebar-collapsed .sidebar {
   width: 70px;
 }
@@ -213,20 +218,61 @@ body.sidebar-collapsed .main-content {
   width: calc(100% - 70px);
 }
 
-/* RESPONSIVIDADE */
-@media (max-width: 900px) {
+/* ==========================================================================
+   AJUSTES EXCLUSIVOS PARA MOBILE (TELA ATÉ 768PX)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Oculta a sidebar lateral no celular */
   .sidebar {
-    width: 70px;
-  }
-  .brand-text, .nav-text, .footer-text {
     display: none !important;
   }
-  .sidebar-toggle {
-    display: none;
-  }
+
+  /* Ajusta a área principal para usar 100% da largura */
   .main-content {
-    margin-left: 70px;
-    width: calc(100% - 70px);
-    padding: 16px;
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 12px 12px 80px 12px !important; /* Espaço inferior para o menu fixo */
+  }
+
+  /* Exibe a navegação fixa no rodapé do celular */
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #0f172a;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 999;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 4px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .mobile-bottom-nav .nav-item {
+    flex-direction: column;
+    padding: 6px 0;
+    gap: 2px;
+    font-size: 0.65rem;
+    color: #94a3b8;
+    width: 100%;
+    justify-content: center;
+    border-radius: 4px;
+  }
+
+  .mobile-bottom-nav .nav-item .nav-icon {
+    font-size: 1.1rem;
+    min-width: auto;
+  }
+
+  .mobile-bottom-nav .nav-item.active {
+    color: #ffffff;
+    background: transparent;
+  }
+
+  .mobile-bottom-nav .nav-item.active .nav-icon {
+    color: var(--primary-light);
   }
 }
