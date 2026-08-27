@@ -1,4 +1,4 @@
-import { StorageService } from '../services/StorageService.js';
+iimport { StorageService } from '../services/StorageService.js';
 import { CalendarModal } from '../components/CalendarModal.js';
 
 export class CalendarView {
@@ -6,9 +6,10 @@ export class CalendarView {
     this.currentDate = new Date();
   }
 
-  render(container) {
+  async render(container) {
     this.container = container;
-    const workouts = StorageService.getWorkouts();
+    const workouts = await StorageService.getWorkouts();
+    const races = await StorageService.getRaces();
 
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth();
@@ -46,25 +47,25 @@ export class CalendarView {
       </div>
     `;
 
-    document.getElementById('cal-prev').onclick = () => {
+    document.getElementById('cal-prev').onclick = async () => {
       this.currentDate.setMonth(this.currentDate.getMonth() - 1);
-      this.render(container);
+      await this.render(container);
     };
 
-    document.getElementById('cal-next').onclick = () => {
+    document.getElementById('cal-next').onclick = async () => {
       this.currentDate.setMonth(this.currentDate.getMonth() + 1);
-      this.render(container);
+      await this.render(container);
     };
 
-    document.getElementById('cal-today').onclick = () => {
+    document.getElementById('cal-today').onclick = async () => {
       this.currentDate = new Date();
-      this.render(container);
+      await this.render(container);
     };
 
-    this.renderCalendarGrid(year, month, workouts);
+    this.renderCalendarGrid(year, month, workouts, races);
   }
 
-  renderCalendarGrid(year, month, workouts) {
+  renderCalendarGrid(year, month, workouts, races) {
     const grid = document.getElementById('calendar-days-container');
     grid.innerHTML = '';
 
@@ -74,14 +75,12 @@ export class CalendarView {
     const today = new Date();
     const isCurrentMonthView = today.getFullYear() === year && today.getMonth() === month;
 
-    // Células vazias iniciais
     for (let i = 0; i < firstDayIndex; i++) {
       const emptyCell = document.createElement('div');
       emptyCell.className = 'cal-day-cell cal-day-empty';
       grid.appendChild(emptyCell);
     }
 
-    // Dias do mês
     for (let day = 1; day <= daysInMonth; day++) {
       const cell = document.createElement('div');
       cell.className = 'cal-day-cell';
@@ -100,13 +99,22 @@ export class CalendarView {
       `;
 
       const eventsListEl = cell.querySelector('.cal-events-list');
-
-      // Leitura direta dos treinos no mesmo dia
       const dayWorkouts = workouts.filter(w => w.date === dateIso);
+      const dayRaces = races.filter(r => r.date === dateIso);
+
+      dayRaces.forEach(r => {
+        const eventTag = document.createElement('div');
+        const st = r.status === 'completed' ? 'event-status-completed' : 'event-status-planned';
+        eventTag.className = `cal-event-tag ${st}`;
+        eventTag.innerHTML = `
+          <strong>🏁 ${r.name}</strong>
+          <span>${r.distance} km</span>
+        `;
+        eventsListEl.appendChild(eventTag);
+      });
 
       dayWorkouts.forEach(w => {
         const eventTag = document.createElement('div');
-
         const statusClassMap = {
           planned: 'event-status-planned',
           completed: 'event-status-completed',
