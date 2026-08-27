@@ -2,11 +2,10 @@ import { StorageService } from '../services/StorageService.js';
 import { RaceModal } from '../components/RaceModal.js';
 
 export class RacesView {
-  render(container) {
+  async render(container) {
     this.container = container;
-    const races = StorageService.getRaces();
+    const races = await StorageService.getRaces();
 
-    // Ordenar provas por data (mais próxima primeiro)
     races.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     container.innerHTML = `
@@ -40,12 +39,14 @@ export class RacesView {
       const daysRemaining = StorageService.getDaysRemaining(race.date);
 
       let countdownBadge = '';
-      if (daysRemaining > 0) {
+      if (race.status === 'completed') {
+        countdownBadge = `<span class="status-badge status-completed">PROVA CONCLUÍDA</span>`;
+      } else if (daysRemaining > 0) {
         countdownBadge = `<span class="status-badge status-planned">FALTAM ${daysRemaining} DIAS</span>`;
       } else if (daysRemaining === 0) {
-        countdownBadge = `<span class="status-badge status-completed">É HOJE!</span>`;
+        countdownBadge = `<span class="status-badge status-planned" style="background:#fef3c7; color:#b45309;">É HOJE!</span>`;
       } else {
-        countdownBadge = `<span class="status-badge status-missed">REALIZADA</span>`;
+        countdownBadge = `<span class="status-badge status-missed">NÃO REALIZADA</span>`;
       }
 
       card.innerHTML = `
@@ -62,21 +63,37 @@ export class RacesView {
             <span>🎯 META DE TEMPO: <strong>${race.targetTime || 'Não informada'}</strong></span>
           </div>
           ${race.notes ? `<p class="workout-desc" style="margin-top: 6px;">${race.notes}</p>` : ''}
+
+          ${race.status === 'completed' && race.resultTime ? `
+            <div class="workout-comparison-box" style="margin-top: 12px; border-left-color: #10b981;">
+              <div class="comp-title" style="color: #047857;">RESULTADO OFICIAL</div>
+              <div class="comp-details">
+                <span><strong>${race.resultDistance} km</strong></span> | 
+                <span>Tempo: <strong>${race.resultTime}</strong></span> | 
+                <span>Pace: <strong>${StorageService.calculatePace(race.resultDistance, race.resultTime)}/km</strong></span>
+              </div>
+            </div>
+          ` : ''}
         </div>
 
         <div class="workout-card-footer">
+          <button class="btn btn-sm btn-complete-race">${race.status === 'completed' ? 'Editar Resultado' : 'Registrar Resultado'}</button>
           <button class="btn btn-sm btn-secondary btn-edit-race">Editar</button>
           <button class="btn btn-sm btn-danger btn-delete-race">Excluir</button>
         </div>
       `;
 
+      card.querySelector('.btn-complete-race').onclick = () => {
+        RaceModal.openComplete(race, () => this.render(this.container));
+      };
+
       card.querySelector('.btn-edit-race').onclick = () => {
         RaceModal.openCreateOrEdit(race, () => this.render(this.container));
       };
 
-      card.querySelector('.btn-delete-race').onclick = () => {
+      card.querySelector('.btn-delete-race').onclick = async () => {
         if (confirm(`Tem certeza que deseja excluir a prova "${race.name}"?`)) {
-          StorageService.deleteRace(race.id);
+          await StorageService.deleteRace(race.id);
           this.render(this.container);
         }
       };
