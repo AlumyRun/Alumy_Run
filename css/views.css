@@ -231,7 +231,7 @@
 .event-status-partial { background: #ffedd5; color: #c2410c; border-left: 3px solid #f97316; }
 .event-status-missed { background: #fee2e2; color: #b91c1c; border-left: 3px solid #ef4444; }
 
-/* ESTILOS DO MÓDULO DE EVOLUÇÃO */
+/* EVOLUÇÃO */
 .period-selector { display: flex; gap: 6px; background: var(--background); padding: 4px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
 .btn-period { background: transparent; border: none; padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: var(--transition); }
 .btn-period.active, .btn-period:hover { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
@@ -241,14 +241,117 @@
 .chart-container { position: relative; height: 240px; width: 100%; }
 .recent-completed-list { display: flex; flex-direction: column; gap: 8px; }
 
-/* RESPONSIVIDADE */
-@media (max-width: 900px) {
-  .dash-metrics-row { flex-wrap: wrap !important; }
-  .dash-card { flex: 1 1 calc(50% - 16px) !important; }
-  .dash-bottom-row { flex-direction: column !important; }
-  .evolution-charts-grid { grid-template-columns: 1fr; }
+/* ==========================================================================
+   ESTILOS DO MÓDULO DE RECORDES PESSOAIS (RPs)
+   ========================================================================== */
+.records-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
-@media (max-width: 600px) {
+.record-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.record-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.record-distance-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.record-card-main {
+  margin-bottom: 14px;
+}
+
+.record-time-highlight {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+  line-height: 1.2;
+}
+
+.record-pace-sub {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.record-card-details {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.record-detail-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.record-detail-line span {
+  color: var(--text-secondary);
+}
+
+.record-detail-line strong {
+  color: var(--text-primary);
+}
+
+.record-sub-comparison {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  background: var(--background);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.sub-comp-item {
+  display: flex;
+  gap: 4px;
+}
+
+.sub-comp-item span {
+  color: var(--text-muted);
+}
+
+.sub-comp-item strong {
+  color: var(--text-primary);
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 1024px) {
+  .records-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .records-grid {
+    grid-template-columns: 1fr;
+  }
+  .dash-metrics-row { flex-wrap: wrap !important; }
   .dash-card { flex: 1 1 100% !important; }
+  .dash-bottom-row { flex-direction: column !important; }
+  .evolution-charts-grid { grid-template-columns: 1fr; }
 }
