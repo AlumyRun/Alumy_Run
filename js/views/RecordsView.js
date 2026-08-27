@@ -14,7 +14,7 @@ export class RecordsView {
   render(container) {
     this.container = container;
 
-    // Leitura estrita das fontes de dados existentes
+    // Leitura estrita das fontes de dados existentes (offline/local)
     const workouts = StorageService.getWorkouts();
     const races = StorageService.getRaces();
 
@@ -29,10 +29,8 @@ export class RecordsView {
         </div>
       </div>
 
-      <!-- CARDS DE RECORDES POR DISTÂNCIA -->
       <div class="records-grid" id="records-cards-grid"></div>
 
-      <!-- HISTÓRICO DE MELHORIAS / SUPERACÕES -->
       <div class="card" style="margin-top: 24px;">
         <div class="block-header" style="margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
           <h3>Histórico de Recordes e Superações</h3>
@@ -58,7 +56,7 @@ export class RecordsView {
       };
     });
 
-    // 1. PROCESSAR TREINOS CONCLUÍDOS
+    // 1. PROCESSAR TREINOS CONCLUÍDOS (Estes possuem resultados reais)
     workouts.forEach(w => {
       if (w.status === 'completed' && w.completed && parseFloat(w.completed.distance) > 0 && w.completed.time) {
         const dist = parseFloat(w.completed.distance);
@@ -92,17 +90,19 @@ export class RecordsView {
           group.workoutBest = recordEntry;
         }
 
-        // Adiciona à lista bruta para cálculo do RP Geral e Histórico
         group.history.push(recordEntry);
       }
     });
 
     // 2. PROCESSAR PROVAS COM RESULTADO REGISTRADO
     races.forEach(r => {
-      // Prova realizada com resultado de tempo registrado em targetTime ou notas/completed
-      if (r.targetTime && r.date) {
+      // CORREÇÃO: Usávamos 'r.targetTime', o que fazia as METAS virarem RECODRES.
+      // Agora o sistema procurará por um 'r.resultTime' (Tempo Realizado). 
+      // Como você ainda não marcou o resultado oficial dessas provas, elas serão ignoradas 
+      // para os Recordes, mantendo a tela limpa.
+      if (r.resultTime && r.date) {
         const dist = parseFloat(r.distance);
-        const timeSecs = this.parseTimeToSeconds(r.targetTime);
+        const timeSecs = this.parseTimeToSeconds(r.resultTime);
 
         if (timeSecs <= 0) return;
 
@@ -119,7 +119,7 @@ export class RecordsView {
           distance: dist,
           timeStr: this.formatSecondsToTime(timeSecs),
           timeSecs: timeSecs,
-          paceStr: StorageService.calculatePace(dist, r.targetTime)
+          paceStr: StorageService.calculatePace(dist, r.resultTime)
         };
 
         const recKey = target.label;
@@ -138,7 +138,7 @@ export class RecordsView {
     Object.keys(recordsMap).forEach(key => {
       const group = recordsMap[key];
 
-      // Ordenação cronológica para simular a progressão histórica de superação
+      // Ordenação cronológica para simular a progressão histórica
       group.history.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       let currentBestSecs = Infinity;
@@ -194,7 +194,6 @@ export class RecordsView {
         const formattedDate = new Date(best.date + 'T00:00:00').toLocaleDateString('pt-BR');
 
         const isRace = best.type === 'race';
-        const isWorkout = best.type === 'workout';
 
         card.innerHTML = `
           <div class="record-card-header">
@@ -218,7 +217,6 @@ export class RecordsView {
             </div>
           </div>
 
-          <!-- SUB-SESSÃO COMPARAÇÃO TREINO X PROVA -->
           <div class="record-sub-comparison">
             <div class="sub-comp-item">
               <span>RP Treino:</span>
