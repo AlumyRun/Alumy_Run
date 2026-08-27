@@ -10,8 +10,8 @@ export class StorageService {
   static async getCurrentUser() {
     if (!supabase) return null;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      return session ? session.user : null;
+      const { data } = await supabase.auth.getSession();
+      return data?.session ? data.session.user : null;
     } catch (e) {
       return null;
     }
@@ -19,31 +19,29 @@ export class StorageService {
 
   // --- LEITURA DE WORKOUTS ---
   static async getWorkouts() {
-    const user = await this.getCurrentUser();
+    try {
+      const user = await this.getCurrentUser();
 
-    if (user) {
-      this.notifyStatus('syncing', '🟡 Sincronizando...');
-      try {
+      if (user) {
+        this.notifyStatus('syncing', '🟡 Sincronizando...');
         const { data, error } = await supabase
           .from('workouts')
           .select('*')
           .eq('user_id', user.id);
 
-        if (error) throw error;
-
-        // Atualiza o cache local somente após retorno confirmado do servidor
-        localStorage.setItem(this.WORKOUTS_KEY, JSON.stringify(data || []));
-        this.notifyStatus('synced', '🟢 Sincronizado');
-        return data || [];
-      } catch (e) {
-        console.error('Falha ao obter treinos do Supabase:', e.message);
-        this.notifyStatus('offline', 'Dados locais — aguardando sincronização');
+        if (!error && data) {
+          localStorage.setItem(this.WORKOUTS_KEY, JSON.stringify(data));
+          this.notifyStatus('synced', '🟢 Sincronizado');
+          return data;
+        }
       }
-    } else {
-      this.notifyStatus('offline', '⚪ Offline (Modo Local)');
+    } catch (e) {
+      console.warn('Supabase não conectado/configurado, utilizando cache local:', e.message);
     }
 
-    // Leitura fallback de cache se offline ou sem sessão (sem criar treinos fictícios)
+    this.notifyStatus('offline', '⚪ Offline (Modo Local)');
+
+    // Fallback estrito de cache local
     try {
       const data = localStorage.getItem(this.WORKOUTS_KEY);
       return data ? JSON.parse(data) : [];
@@ -52,28 +50,30 @@ export class StorageService {
     }
   }
 
-  // --- ESCRITA DE WORKOUTS (SUPABASE PRIMEIRO -> CACHE DEPOIS) ---
+  // --- ESCRITA DE WORKOUTS ---
   static async addWorkout(workout) {
-    const user = await this.getCurrentUser();
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 Sincronizando...');
+        const { error } = await supabase.from('workouts').insert([{
+          id: workout.id,
+          user_id: user.id,
+          date: workout.date,
+          type: workout.type,
+          status: workout.status,
+          planned: workout.planned,
+          completed: workout.completed
+        }]);
 
-    if (user) {
-      this.notifyStatus('syncing', '🟡 Sincronizando...');
-      const { error } = await supabase.from('workouts').insert([{
-        id: workout.id,
-        user_id: user.id,
-        date: workout.date,
-        type: workout.type,
-        status: workout.status,
-        planned: workout.planned,
-        completed: workout.completed
-      }]);
-
-      if (error) {
-        console.error('Erro no Supabase INSERT:', error.message);
-        this.notifyStatus('error', '🔴 Erro de sincronização');
-        throw new Error('Não foi possível sincronizar o treino. Verifique sua conexão e tente novamente.');
+        if (error) {
+          this.notifyStatus('error', '🔴 Erro de sincronização');
+          throw new Error('Não foi possível sincronizar o treino. Verifique sua conexão e tente novamente.');
+        }
+        this.notifyStatus('synced', '🟢 Sincronizado');
       }
-      this.notifyStatus('synced', '🟢 Sincronizado');
+    } catch (e) {
+      if (e.message.includes('sincronizar')) throw e;
     }
 
     const workouts = await this.getWorkoutsLocalCache();
@@ -82,25 +82,27 @@ export class StorageService {
   }
 
   static async updateWorkout(updatedWorkout) {
-    const user = await this.getCurrentUser();
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 Sincronizando...');
+        const { error } = await supabase.from('workouts').update({
+          date: updatedWorkout.date,
+          type: updatedWorkout.type,
+          status: updatedWorkout.status,
+          planned: updatedWorkout.planned,
+          completed: updatedWorkout.completed,
+          updated_at: new Date()
+        }).eq('id', updatedWorkout.id).eq('user_id', user.id);
 
-    if (user) {
-      this.notifyStatus('syncing', '🟡 Sincronizando...');
-      const { error } = await supabase.from('workouts').update({
-        date: updatedWorkout.date,
-        type: updatedWorkout.type,
-        status: updatedWorkout.status,
-        planned: updatedWorkout.planned,
-        completed: updatedWorkout.completed,
-        updated_at: new Date()
-      }).eq('id', updatedWorkout.id).eq('user_id', user.id);
-
-      if (error) {
-        console.error('Erro no Supabase UPDATE:', error.message);
-        this.notifyStatus('error', '🔴 Erro de sincronização');
-        throw new Error('Não foi possível atualizar o treino na nuvem. Alteração cancelada.');
+        if (error) {
+          this.notifyStatus('error', '🔴 Erro de sincronização');
+          throw new Error('Não foi possível atualizar o treino na nuvem. Alteração cancelada.');
+        }
+        this.notifyStatus('synced', '🟢 Sincronizado');
       }
-      this.notifyStatus('synced', '🟢 Sincronizado');
+    } catch (e) {
+      if (e.message.includes('atualizar')) throw e;
     }
 
     const workouts = await this.getWorkoutsLocalCache();
@@ -112,18 +114,20 @@ export class StorageService {
   }
 
   static async deleteWorkout(id) {
-    const user = await this.getCurrentUser();
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 Sincronizando...');
+        const { error } = await supabase.from('workouts').delete().eq('id', id).eq('user_id', user.id);
 
-    if (user) {
-      this.notifyStatus('syncing', '🟡 Sincronizando...');
-      const { error } = await supabase.from('workouts').delete().eq('id', id).eq('user_id', user.id);
-
-      if (error) {
-        console.error('Erro no Supabase DELETE:', error.message);
-        this.notifyStatus('error', '🔴 Erro de sincronização');
-        throw new Error('Não foi possível excluir o treino do servidor.');
+        if (error) {
+          this.notifyStatus('error', '🔴 Erro de sincronização');
+          throw new Error('Não foi possível excluir o treino do servidor.');
+        }
+        this.notifyStatus('synced', '🟢 Sincronizado');
       }
-      this.notifyStatus('synced', '🟢 Sincronizado');
+    } catch (e) {
+      if (e.message.includes('excluir')) throw e;
     }
 
     let workouts = await this.getWorkoutsLocalCache();
@@ -133,35 +137,33 @@ export class StorageService {
 
   // --- LEITURA E ESCRITA DE PROVAS (RACES) ---
   static async getRaces() {
-    const user = await this.getCurrentUser();
-
-    if (user) {
-      try {
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
         const { data, error } = await supabase
           .from('races')
           .select('*')
           .eq('user_id', user.id);
 
-        if (error) throw error;
+        if (!error && data) {
+          const mappedRaces = data.map(r => ({
+            id: r.id,
+            name: r.name,
+            date: r.date,
+            distance: parseFloat(r.distance),
+            targetTime: r.target_time,
+            location: r.location,
+            notes: r.notes
+          }));
 
-        const mappedRaces = (data || []).map(r => ({
-          id: r.id,
-          name: r.name,
-          date: r.date,
-          distance: parseFloat(r.distance),
-          targetTime: r.target_time,
-          location: r.location,
-          notes: r.notes
-        }));
-
-        localStorage.setItem(this.RACES_KEY, JSON.stringify(mappedRaces));
-        return mappedRaces;
-      } catch (e) {
-        console.error('Falha ao ler provas do Supabase:', e.message);
+          localStorage.setItem(this.RACES_KEY, JSON.stringify(mappedRaces));
+          return mappedRaces;
+        }
       }
+    } catch (e) {
+      console.warn('Falha ao ler provas do Supabase, lendo cache local:', e.message);
     }
 
-    // Fallback estrito: lê apenas o cache local existente, sem injetar provas automaticamente
     try {
       const data = localStorage.getItem(this.RACES_KEY);
       return data ? JSON.parse(data) : [];
@@ -171,26 +173,29 @@ export class StorageService {
   }
 
   static async addRace(race) {
-    const user = await this.getCurrentUser();
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 Sincronizando...');
+        const { error } = await supabase.from('races').insert([{
+          id: race.id,
+          user_id: user.id,
+          name: race.name,
+          date: race.date,
+          distance: race.distance,
+          target_time: race.targetTime,
+          location: race.location,
+          notes: race.notes
+        }]);
 
-    if (user) {
-      this.notifyStatus('syncing', '🟡 Sincronizando...');
-      const { error } = await supabase.from('races').insert([{
-        id: race.id,
-        user_id: user.id,
-        name: race.name,
-        date: race.date,
-        distance: race.distance,
-        target_time: race.targetTime,
-        location: race.location,
-        notes: race.notes
-      }]);
-
-      if (error) {
-        this.notifyStatus('error', '🔴 Erro de sincronização');
-        throw new Error('Não foi possível sincronizar a prova com o servidor.');
+        if (error) {
+          this.notifyStatus('error', '🔴 Erro de sincronização');
+          throw new Error('Não foi possível sincronizar a prova com o servidor.');
+        }
+        this.notifyStatus('synced', '🟢 Sincronizado');
       }
-      this.notifyStatus('synced', '🟢 Sincronizado');
+    } catch (e) {
+      if (e.message.includes('sincronizar')) throw e;
     }
 
     const races = await this.getRacesLocalCache();
@@ -199,25 +204,28 @@ export class StorageService {
   }
 
   static async updateRace(updatedRace) {
-    const user = await this.getCurrentUser();
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 Sincronizando...');
+        const { error } = await supabase.from('races').update({
+          name: updatedRace.name,
+          date: updatedRace.date,
+          distance: updatedRace.distance,
+          target_time: updatedRace.targetTime,
+          location: updatedRace.location,
+          notes: updatedRace.notes,
+          updated_at: new Date()
+        }).eq('id', updatedRace.id).eq('user_id', user.id);
 
-    if (user) {
-      this.notifyStatus('syncing', '🟡 Sincronizando...');
-      const { error } = await supabase.from('races').update({
-        name: updatedRace.name,
-        date: updatedRace.date,
-        distance: updatedRace.distance,
-        target_time: updatedRace.targetTime,
-        location: updatedRace.location,
-        notes: updatedRace.notes,
-        updated_at: new Date()
-      }).eq('id', updatedRace.id).eq('user_id', user.id);
-
-      if (error) {
-        this.notifyStatus('error', '🔴 Erro de sincronização');
-        throw new Error('Não foi possível atualizar a prova no servidor.');
+        if (error) {
+          this.notifyStatus('error', '🔴 Erro de sincronização');
+          throw new Error('Não foi possível atualizar a prova no servidor.');
+        }
+        this.notifyStatus('synced', '🟢 Sincronizado');
       }
-      this.notifyStatus('synced', '🟢 Sincronizado');
+    } catch (e) {
+      if (e.message.includes('atualizar')) throw e;
     }
 
     const races = await this.getRacesLocalCache();
@@ -229,16 +237,19 @@ export class StorageService {
   }
 
   static async deleteRace(id) {
-    const user = await this.getCurrentUser();
-
-    if (user) {
-      this.notifyStatus('syncing', '🟡 Sincronizando...');
-      const { error } = await supabase.from('races').delete().eq('id', id).eq('user_id', user.id);
-      if (error) {
-        this.notifyStatus('error', '🔴 Erro de sincronização');
-        throw new Error('Não foi possível excluir a prova do servidor.');
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 Sincronizando...');
+        const { error } = await supabase.from('races').delete().eq('id', id).eq('user_id', user.id);
+        if (error) {
+          this.notifyStatus('error', '🔴 Erro de sincronização');
+          throw new Error('Não foi possível excluir a prova do servidor.');
+        }
+        this.notifyStatus('synced', '🟢 Sincronizado');
       }
-      this.notifyStatus('synced', '🟢 Sincronizado');
+    } catch (e) {
+      if (e.message.includes('excluir')) throw e;
     }
 
     let races = await this.getRacesLocalCache();
@@ -246,7 +257,7 @@ export class StorageService {
     localStorage.setItem(this.RACES_KEY, JSON.stringify(races));
   }
 
-  // --- MIGRAÇÃO SEGURA, ATÔMICA E ANTI-DUPLICAÇÃO POR USER_ID ---
+  // --- MIGRAÇÃO SEGURA ---
   static async checkMigrationStatus(user) {
     if (!user) return true;
     const migrationKey = `migration_status_${user.id}`;
@@ -267,18 +278,15 @@ export class StorageService {
     const localRaces = JSON.parse(localStorage.getItem(this.RACES_KEY) || '[]');
 
     try {
-      // 1. Migração de Treinos
       for (const w of localWorkouts) {
-        const { data, error: selectErr } = await supabase
+        const { data } = await supabase
           .from('workouts')
           .select('id')
           .eq('id', w.id)
           .eq('user_id', userId);
 
-        if (selectErr) throw selectErr;
-
         if (!data || data.length === 0) {
-          const { error: insertErr } = await supabase.from('workouts').insert([{
+          await supabase.from('workouts').insert([{
             id: w.id,
             user_id: userId,
             date: w.date,
@@ -287,23 +295,18 @@ export class StorageService {
             planned: w.planned,
             completed: w.completed
           }]);
-
-          if (insertErr) throw insertErr;
         }
       }
 
-      // 2. Migração de Provas
       for (const r of localRaces) {
-        const { data, error: selectErr } = await supabase
+        const { data } = await supabase
           .from('races')
           .select('id')
           .eq('id', r.id)
           .eq('user_id', userId);
 
-        if (selectErr) throw selectErr;
-
         if (!data || data.length === 0) {
-          const { error: insertErr } = await supabase.from('races').insert([{
+          await supabase.from('races').insert([{
             id: r.id,
             user_id: userId,
             name: r.name,
@@ -313,8 +316,6 @@ export class StorageService {
             location: r.location,
             notes: r.notes
           }]);
-
-          if (insertErr) throw insertErr;
         }
       }
 
@@ -327,50 +328,54 @@ export class StorageService {
     }
   }
 
-  // --- REALTIME SUBSCRIPTION COM FILTRO DE USER_ID ---
+  // --- REALTIME SUBSCRIPTION ---
   static async subscribeToRealtime(onUpdateCallback) {
     if (!supabase) return;
 
-    const user = await this.getCurrentUser();
-    if (!user) return;
+    try {
+      const user = await this.getCurrentUser();
+      if (!user) return;
 
-    if (this.realtimeChannel) {
-      supabase.removeChannel(this.realtimeChannel);
+      if (this.realtimeChannel) {
+        supabase.removeChannel(this.realtimeChannel);
+      }
+
+      this.realtimeChannel = supabase
+        .channel(`user-sync-${user.id}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'workouts',
+          filter: `user_id=eq.${user.id}`
+        }, async () => {
+          if (!this.isRealtimeApplying) {
+            this.isRealtimeApplying = true;
+            if (onUpdateCallback) await onUpdateCallback();
+            this.isRealtimeApplying = false;
+          }
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'races',
+          filter: `user_id=eq.${user.id}`
+        }, async () => {
+          if (!this.isRealtimeApplying) {
+            this.isRealtimeApplying = true;
+            if (onUpdateCallback) await onUpdateCallback();
+            this.isRealtimeApplying = false;
+          }
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            this.notifyStatus('synced', '🟢 Sincronizado');
+          } else if (status === 'CHANNEL_ERROR') {
+            this.notifyStatus('error', '🔴 Erro de sincronização');
+          }
+        });
+    } catch (e) {
+      console.warn('Realtime desativado no modo local.');
     }
-
-    this.realtimeChannel = supabase
-      .channel(`user-sync-${user.id}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'workouts',
-        filter: `user_id=eq.${user.id}`
-      }, async () => {
-        if (!this.isRealtimeApplying) {
-          this.isRealtimeApplying = true;
-          if (onUpdateCallback) await onUpdateCallback();
-          this.isRealtimeApplying = false;
-        }
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'races',
-        filter: `user_id=eq.${user.id}`
-      }, async () => {
-        if (!this.isRealtimeApplying) {
-          this.isRealtimeApplying = true;
-          if (onUpdateCallback) await onUpdateCallback();
-          this.isRealtimeApplying = false;
-        }
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          this.notifyStatus('synced', '🟢 Sincronizado');
-        } else if (status === 'CHANNEL_ERROR') {
-          this.notifyStatus('error', '🔴 Erro de sincronização');
-        }
-      });
   }
 
   static notifyStatus(type, message) {
@@ -457,5 +462,4 @@ export class StorageService {
 
     return `${paceMin}:${paceSec < 10 ? '0' : ''}${paceSec}`;
   }
-}
 }
