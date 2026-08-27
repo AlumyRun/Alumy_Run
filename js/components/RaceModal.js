@@ -1,4 +1,4 @@
-import { StorageService } from '../services/StorageService.js';
+iimport { StorageService } from '../services/StorageService.js';
 
 export class RaceModal {
   static openCreateOrEdit(raceToEdit = null, onSaveCallback) {
@@ -79,7 +79,10 @@ export class RaceModal {
         distance: parseFloat(document.getElementById('r-distance').value) || 0,
         targetTime: document.getElementById('r-targettime').value,
         location: document.getElementById('r-location').value,
-        notes: document.getElementById('r-notes').value
+        notes: document.getElementById('r-notes').value,
+        status: race.status || 'planned',
+        resultTime: race.resultTime || null,
+        resultDistance: race.resultDistance || null
       };
 
       if (isEdit) {
@@ -87,6 +90,105 @@ export class RaceModal {
       } else {
         StorageService.addRace(newRace);
       }
+
+      this.close();
+      if (onSaveCallback) onSaveCallback();
+    };
+  }
+
+  // NOVA FUNÇÃO: ABRE O MODAL PARA REGISTRAR O RESULTADO DA PROVA
+  static openComplete(race, onSaveCallback) {
+    this.close();
+
+    const comp = {
+      distance: race.resultDistance || race.distance || '',
+      time: race.resultTime || '',
+      status: race.status === 'planned' ? 'completed' : (race.status || 'completed')
+    };
+
+    const modalHtml = `
+      <div class="modal-backdrop" id="race-modal-backdrop">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3>Registrar Resultado — ${race.name}</h3>
+            <button class="modal-close-btn" id="race-modal-close">✕</button>
+          </div>
+          <form id="complete-race-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Status da Prova *</label>
+                <select id="cr-status" required>
+                  <option value="completed" ${comp.status === 'completed' ? 'selected' : ''}>Concluída</option>
+                  <option value="planned" ${comp.status === 'planned' ? 'selected' : ''}>Planejada</option>
+                  <option value="missed" ${comp.status === 'missed' ? 'selected' : ''}>Não Realizada (DNS)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Distância realizada (km) *</label>
+                <input type="number" step="0.01" id="cr-dist" value="${comp.distance}" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tempo Oficial (HH:MM:SS ou MM:SS) *</label>
+                <input type="text" id="cr-time" value="${comp.time}" placeholder="Ex: 20:38" required>
+              </div>
+              <div class="form-group">
+                <label>Pace Médio (Calculado)</label>
+                <input type="text" id="cr-pace" value="" readonly class="input-readonly">
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" id="race-modal-cancel">Cancelar</button>
+              <button type="submit" class="btn" id="btn-save-race-result">Salvar Resultado</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const distInput = document.getElementById('cr-dist');
+    const timeInput = document.getElementById('cr-time');
+    const paceInput = document.getElementById('cr-pace');
+
+    const updateCalculatedPace = () => {
+      const dist = parseFloat(distInput.value) || 0;
+      const time = timeInput.value;
+      if (dist > 0 && time) {
+        const calculatedPace = StorageService.calculatePace(dist, time);
+        paceInput.value = calculatedPace !== '0:00' ? `${calculatedPace}/km` : '0:00/km';
+      } else {
+        paceInput.value = '0:00/km';
+      }
+    };
+
+    distInput.oninput = updateCalculatedPace;
+    timeInput.oninput = updateCalculatedPace;
+    updateCalculatedPace();
+
+    document.getElementById('race-modal-close').onclick = () => this.close();
+    document.getElementById('race-modal-cancel').onclick = () => this.close();
+
+    document.getElementById('complete-race-form').onsubmit = (e) => {
+      e.preventDefault();
+
+      const dist = parseFloat(distInput.value) || 0;
+      let timeRaw = timeInput.value.trim();
+
+      if (!timeRaw.includes(':') && !isNaN(parseFloat(timeRaw))) {
+        timeRaw = `${timeRaw}:00`;
+      }
+
+      race.status = document.getElementById('cr-status').value;
+      race.resultDistance = dist;
+      race.resultTime = timeRaw;
+
+      // Salva a alteração
+      StorageService.updateRace(race);
 
       this.close();
       if (onSaveCallback) onSaveCallback();
