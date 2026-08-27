@@ -231,7 +231,7 @@
 .event-status-partial { background: #ffedd5; color: #c2410c; border-left: 3px solid #f97316; }
 .event-status-missed { background: #fee2e2; color: #b91c1c; border-left: 3px solid #ef4444; }
 
-/* EVOLUÇÃO */
+/* ESTILOS DO MÓDULO DE EVOLUÇÃO */
 .period-selector { display: flex; gap: 6px; background: var(--background); padding: 4px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
 .btn-period { background: transparent; border: none; padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: var(--transition); }
 .btn-period.active, .btn-period:hover { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
