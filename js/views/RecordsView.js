@@ -2,30 +2,31 @@ import { StorageService } from '../services/StorageService.js';
 
 export class RecordsView {
   constructor() {
+    // Novas distâncias de referência exigidas
     this.targetDistances = [
       { label: '1 KM', distance: 1 },
       { label: '5 KM', distance: 5 },
-      { label: '7 KM', distance: 7 },
       { label: '10 KM', distance: 10 },
-      { label: '21,1 KM', distance: 21.1 }
+      { label: '15 KM', distance: 15 },
+      { label: '21,1 KM', distance: 21.1 },
+      { label: '30 KM', distance: 30 },
+      { label: '42,2 KM', distance: 42.2 }
     ];
   }
 
   render(container) {
     this.container = container;
 
-    // Leitura estrita das fontes de dados existentes (offline/local)
     const workouts = StorageService.getWorkouts();
     const races = StorageService.getRaces();
 
-    // Consolidação de todos os resultados válidos de treinos e provas
     const recordsMap = this.calculatePersonalRecords(workouts, races);
 
     container.innerHTML = `
       <div class="page-title-bar">
         <div>
           <h1 class="page-title">🏆 Recordes Pessoais</h1>
-          <p class="card-subtext">Seus melhores resultados de corrida registrados em treinos e provas.</p>
+          <p class="card-subtext">Seus melhores resultados e passagens calculados a partir dos treinos e provas.</p>
         </div>
       </div>
 
@@ -56,7 +57,7 @@ export class RecordsView {
       };
     });
 
-    // 1. PROCESSAR TREINOS CONCLUÍDOS (Estes possuem resultados reais)
+    // 1. PROCESSAR TREINOS (Com extrapolação de distâncias menores)
     workouts.forEach(w => {
       if (w.status === 'completed' && w.completed && parseFloat(w.completed.distance) > 0 && w.completed.time) {
         const dist = parseFloat(w.completed.distance);
@@ -64,81 +65,85 @@ export class RecordsView {
 
         if (timeSecs <= 0) return;
 
-        // Verifica compatibilidade exata de distância
-        const target = this.targetDistances.find(t => t.distance === dist);
-        if (!target) return;
-
-        const recordEntry = {
-          id: w.id,
-          type: 'workout',
-          sourceLabel: '🏃 Treino',
-          title: `Treino de ${w.type}`,
-          date: w.date,
-          distance: dist,
-          timeStr: this.formatSecondsToTime(timeSecs),
-          timeSecs: timeSecs,
-          paceStr: w.completed.pace && w.completed.pace !== '0:00' 
+        const paceSecs = timeSecs / dist; // Segundos por km
+        const paceStr = w.completed.pace && w.completed.pace !== '0:00' 
             ? w.completed.pace 
-            : StorageService.calculatePace(dist, w.completed.time)
-        };
+            : StorageService.calculatePace(dist, w.completed.time);
 
-        const recKey = target.label;
-        const group = recordsMap[recKey];
+        // Se o treino tem distância MAIOR ou IGUAL a um RP, ele calcula a passagem
+        this.targetDistances.forEach(target => {
+          if (dist >= target.distance) {
+            // Calcula o tempo proporcional para essa marca
+            const extrapolatedTimeSecs = Math.round(target.distance * paceSecs);
 
-        // Avalia RP de Treino
-        if (!group.workoutBest || timeSecs < group.workoutBest.timeSecs) {
-          group.workoutBest = recordEntry;
-        }
+            const recordEntry = {
+              id: w.id,
+              type: 'workout',
+              sourceLabel: '🏃 Treino',
+              title: dist === target.distance ? w.type : `${w.type} (Passagem em ${dist} km)`,
+              date: w.date,
+              distance: target.distance,
+              timeStr: this.formatSecondsToTime(extrapolatedTimeSecs),
+              timeSecs: extrapolatedTimeSecs,
+              paceStr: paceStr
+            };
 
-        group.history.push(recordEntry);
+            const recKey = target.label;
+            const group = recordsMap[recKey];
+
+            if (!group.workoutBest || extrapolatedTimeSecs < group.workoutBest.timeSecs) {
+              group.workoutBest = recordEntry;
+            }
+            group.history.push(recordEntry);
+          }
+        });
       }
     });
 
-    // 2. PROCESSAR PROVAS COM RESULTADO REGISTRADO
+    // 2. PROCESSAR PROVAS (Utilizando apenas 'resultTime' para ignorar as Metas)
     races.forEach(r => {
-      // CORREÇÃO: Usávamos 'r.targetTime', o que fazia as METAS virarem RECODRES.
-      // Agora o sistema procurará por um 'r.resultTime' (Tempo Realizado). 
-      // Como você ainda não marcou o resultado oficial dessas provas, elas serão ignoradas 
-      // para os Recordes, mantendo a tela limpa.
       if (r.resultTime && r.date) {
         const dist = parseFloat(r.distance);
         const timeSecs = this.parseTimeToSeconds(r.resultTime);
 
         if (timeSecs <= 0) return;
 
-        const target = this.targetDistances.find(t => t.distance === dist);
-        if (!target) return;
+        const paceSecs = timeSecs / dist;
+        const paceStr = StorageService.calculatePace(dist, r.resultTime);
 
-        const recordEntry = {
-          id: r.id,
-          type: 'race',
-          sourceLabel: '🏁 Prova',
-          title: r.name,
-          location: r.location,
-          date: r.date,
-          distance: dist,
-          timeStr: this.formatSecondsToTime(timeSecs),
-          timeSecs: timeSecs,
-          paceStr: StorageService.calculatePace(dist, r.resultTime)
-        };
+        this.targetDistances.forEach(target => {
+          if (dist >= target.distance) {
+            const extrapolatedTimeSecs = Math.round(target.distance * paceSecs);
 
-        const recKey = target.label;
-        const group = recordsMap[recKey];
+            const recordEntry = {
+              id: r.id,
+              type: 'race',
+              sourceLabel: '🏁 Prova',
+              title: dist === target.distance ? r.name : `${r.name} (Passagem em ${dist} km)`,
+              location: r.location,
+              date: r.date,
+              distance: target.distance,
+              timeStr: this.formatSecondsToTime(extrapolatedTimeSecs),
+              timeSecs: extrapolatedTimeSecs,
+              paceStr: paceStr
+            };
 
-        // Avalia RP de Prova
-        if (!group.raceBest || timeSecs < group.raceBest.timeSecs) {
-          group.raceBest = recordEntry;
-        }
+            const recKey = target.label;
+            const group = recordsMap[recKey];
 
-        group.history.push(recordEntry);
+            if (!group.raceBest || extrapolatedTimeSecs < group.raceBest.timeSecs) {
+              group.raceBest = recordEntry;
+            }
+            group.history.push(recordEntry);
+          }
+        });
       }
     });
 
-    // 3. DETERMINAR RP GERAL E MONTA HISTÓRICO DE EVOLUÇÃO CRONOLÓGICA
+    // 3. DETERMINAR RP GERAL E MONTA HISTÓRICO
     Object.keys(recordsMap).forEach(key => {
       const group = recordsMap[key];
 
-      // Ordenação cronológica para simular a progressão histórica
       group.history.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       let currentBestSecs = Infinity;
@@ -164,7 +169,6 @@ export class RecordsView {
 
       group.progression = progression;
 
-      // Define o RP Geral (o menor tempo entre treino e prova)
       if (group.workoutBest && group.raceBest) {
         group.overallBest = group.workoutBest.timeSecs <= group.raceBest.timeSecs 
           ? group.workoutBest 
@@ -229,7 +233,6 @@ export class RecordsView {
           </div>
         `;
       } else {
-        // ESTADO VAZIO POR DISTÂNCIA
         card.innerHTML = `
           <div class="record-card-header">
             <span class="record-distance-title">${item.label}</span>
@@ -242,7 +245,7 @@ export class RecordsView {
           </div>
 
           <div class="record-card-details" style="border-top: 1px dashed var(--border); padding-top: 8px;">
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Conclua um treino ou prova de ${item.label} para registrar seu RP.</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Conclua um treino ou prova de ${item.label} ou mais para registrar seu RP.</span>
           </div>
         `;
       }
@@ -280,7 +283,6 @@ export class RecordsView {
       return;
     }
 
-    // Ordena as superações do mais recente para o mais antigo
     allProgressions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     allProgressions.forEach(prog => {
