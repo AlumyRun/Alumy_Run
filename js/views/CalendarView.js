@@ -1,4 +1,4 @@
-iimport { StorageService } from '../services/StorageService.js';
+import { StorageService } from '../services/StorageService.js';
 import { CalendarModal } from '../components/CalendarModal.js';
 
 export class CalendarView {
@@ -6,10 +6,9 @@ export class CalendarView {
     this.currentDate = new Date();
   }
 
-  async render(container) {
+  render(container) {
     this.container = container;
-    const workouts = await StorageService.getWorkouts();
-    const races = await StorageService.getRaces();
+    const workouts = StorageService.getWorkouts();
 
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth();
@@ -47,25 +46,25 @@ export class CalendarView {
       </div>
     `;
 
-    document.getElementById('cal-prev').onclick = async () => {
+    document.getElementById('cal-prev').onclick = () => {
       this.currentDate.setMonth(this.currentDate.getMonth() - 1);
-      await this.render(container);
+      this.render(container);
     };
 
-    document.getElementById('cal-next').onclick = async () => {
+    document.getElementById('cal-next').onclick = () => {
       this.currentDate.setMonth(this.currentDate.getMonth() + 1);
-      await this.render(container);
+      this.render(container);
     };
 
-    document.getElementById('cal-today').onclick = async () => {
+    document.getElementById('cal-today').onclick = () => {
       this.currentDate = new Date();
-      await this.render(container);
+      this.render(container);
     };
 
-    this.renderCalendarGrid(year, month, workouts, races);
+    this.renderCalendarGrid(year, month, workouts);
   }
 
-  renderCalendarGrid(year, month, workouts, races) {
+  renderCalendarGrid(year, month, workouts) {
     const grid = document.getElementById('calendar-days-container');
     grid.innerHTML = '';
 
@@ -100,21 +99,10 @@ export class CalendarView {
 
       const eventsListEl = cell.querySelector('.cal-events-list');
       const dayWorkouts = workouts.filter(w => w.date === dateIso);
-      const dayRaces = races.filter(r => r.date === dateIso);
-
-      dayRaces.forEach(r => {
-        const eventTag = document.createElement('div');
-        const st = r.status === 'completed' ? 'event-status-completed' : 'event-status-planned';
-        eventTag.className = `cal-event-tag ${st}`;
-        eventTag.innerHTML = `
-          <strong>🏁 ${r.name}</strong>
-          <span>${r.distance} km</span>
-        `;
-        eventsListEl.appendChild(eventTag);
-      });
 
       dayWorkouts.forEach(w => {
         const eventTag = document.createElement('div');
+
         const statusClassMap = {
           planned: 'event-status-planned',
           completed: 'event-status-completed',
