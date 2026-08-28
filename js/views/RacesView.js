@@ -2,9 +2,9 @@ import { StorageService } from '../services/StorageService.js';
 import { RaceModal } from '../components/RaceModal.js';
 
 export class RacesView {
-  render(container) {
+  async render(container) {
     this.container = container;
-    const races = StorageService.getRaces();
+    const races = await StorageService.getRaces();
 
     races.sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -37,7 +37,6 @@ export class RacesView {
       const formattedDate = new Date(race.date + 'T00:00:00').toLocaleDateString('pt-BR');
       const isCompleted = race.status === 'completed';
       
-      // STATUS DA PROVA (AGENDADA ou CONCLUÍDA)
       let headerBadge = '';
       if (isCompleted) {
         headerBadge = `<span class="status-badge status-completed">🟢 CONCLUÍDA</span>`;
@@ -45,15 +44,12 @@ export class RacesView {
         headerBadge = `<span class="status-badge status-planned">🔵 AGENDADA</span>`;
       }
 
-      // CORPO DO CARD
       let bodyHtml = '';
       if (isCompleted && race.resultTime && race.resultDistance) {
         
-        // CÁLCULOS DO RITMO (PACE)
         const targetPace = StorageService.calculatePace(race.distance, race.targetTime);
         const actualPace = StorageService.calculatePace(race.resultDistance, race.resultTime);
 
-        // COMPARAÇÃO COM A META DE TEMPO
         let diffHtml = '';
         if (race.targetTime && race.targetTime !== '0:00') {
           const targetSecs = this.parseTimeToSeconds(race.targetTime);
@@ -63,7 +59,6 @@ export class RacesView {
           const diffText = this.formatDiffText(Math.abs(diffSecs));
 
           if (diffSecs < 0) {
-            // Abaixo da meta (Positivo)
             diffHtml = `
               <div style="color: #047857; background: #d1fae5; padding: 8px 12px; border-radius: var(--radius-sm); margin-top: 8px;">
                 <span style="font-weight: 800; font-size: 1rem; display: block;">✅ ${diffText}</span>
@@ -71,7 +66,6 @@ export class RacesView {
               </div>
             `;
           } else if (diffSecs > 0) {
-            // Acima da meta (Negativo)
             diffHtml = `
               <div style="color: #b91c1c; background: #fee2e2; padding: 8px 12px; border-radius: var(--radius-sm); margin-top: 8px;">
                 <span style="font-weight: 800; font-size: 1rem; display: block;">🔴 ${diffText}</span>
@@ -79,7 +73,6 @@ export class RacesView {
               </div>
             `;
           } else {
-            // Exatamente igual
             diffHtml = `
               <div style="color: #1d4ed8; background: #dbeafe; padding: 8px 12px; border-radius: var(--radius-sm); margin-top: 8px;">
                 <span style="font-weight: 800; font-size: 1rem; display: block;">🎯 Exatamente na meta</span>
@@ -112,7 +105,6 @@ export class RacesView {
           </div>
         `;
       } else {
-        // Exibição Padrão (Antes da Conclusão)
         bodyHtml = `
           <div class="workout-meta-row" style="margin-top: 8px;">
             <span>🎯 META DE TEMPO: <strong>${race.targetTime || 'Não informada'}</strong></span>
@@ -144,7 +136,6 @@ export class RacesView {
         </div>
       `;
 
-      // Eventos dos botões
       card.querySelector('.btn-complete-race').onclick = () => {
         RaceModal.openComplete(race, () => this.render(this.container));
       };
@@ -164,7 +155,6 @@ export class RacesView {
     });
   }
 
-  // --- Helpers Locais de Cálculo ---
   parseTimeToSeconds(timeStr) {
     if (!timeStr) return 0;
     const cleanStr = timeStr.toString().trim();
