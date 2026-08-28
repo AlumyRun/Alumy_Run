@@ -1,157 +1,136 @@
-/* HEADER SUPERIOR */
-.top-header {
+/* ==========================================================================
+   MODAIS RESPONSIVOS
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
+  justify-content: center;
+  padding: clamp(10px, 3vw, 24px);
+  box-sizing: border-box;
+  z-index: 9999;
+}
+
+.modal-card {
+  width: min(100%, 540px); /* 100% no celular, max de 540px no desktop */
+  max-height: clamp(80vh, 90vh, 95vh);
+  overflow-y: auto;
   background: var(--surface);
-  padding: 14px 24px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  gap: 16px;
-}
-
-.header-user-info h2 {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.header-user-info span {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.header-search {
+  padding: clamp(16px, 4vw, 24px);
+  box-shadow: var(--shadow-lg);
   display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--background);
-  border: 1px solid var(--border);
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  width: 100%;
-  max-width: 380px;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
-.search-input {
-  border: none;
-  background: transparent;
-  outline: none;
-  width: 100%;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-icon-btn {
-  background: var(--background);
-  border: 1px solid var(--border);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--primary-dark);
-  color: white;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* CARDS E ELEMENTOS DA INTERFACE */
-.page-title-bar {
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
-.page-title {
-  font-size: 1.4rem;
-  font-weight: 800;
-}
-
-.card-subtext {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
-
-.btn {
-  background-color: var(--primary);
-  color: #ffffff;
+.modal-close-btn {
+  background: none;
   border: none;
-  padding: 10px 18px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+}
+
+/* ==========================================================================
+   FORMULÁRIOS FLUIDOS
+   ========================================================================== */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  outline: none;
+  font-size: 1rem; /* Previne o zoom automático no iPhone */
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ==========================================================================
+   BOTÕES E BADGES
+   ========================================================================== */
+.btn {
+  padding: 10px 16px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
   border-radius: var(--radius-sm);
   font-weight: 600;
-  font-size: 0.85rem;
   cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
 }
 
-.card {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
+.btn-secondary { background: var(--background); color: var(--text-primary); border: 1px solid var(--border); }
+.btn-danger { background: #ef4444; color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-block;
+  text-align: center;
+  white-space: nowrap;
 }
 
-/* RESPONSIVIDADE COMPACTA DO HEADER NO MOBILE */
-@media (max-width: 768px) {
-  .top-header {
-    flex-wrap: wrap;
-    padding: 10px 14px;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
+.status-planned { background: #e0f2fe; color: #0369a1; }
+.status-completed { background: #d1fae5; color: #047857; }
+.status-partial { background: #ffedd5; color: #c2410c; }
+.status-missed { background: #fee2e2; color: #b91c1c; }
 
-  .header-user-info h2 {
-    font-size: 0.95rem;
-  }
-
-  .header-user-info span {
-    font-size: 0.725rem;
-  }
-
-  .header-search {
-    order: 3;
-    max-width: 100%;
-    padding: 6px 10px;
-  }
-
-  .header-actions {
-    gap: 8px;
-  }
-
-  .header-icon-btn, .user-avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 0.8rem;
-  }
-
-  .page-title {
-    font-size: 1.2rem;
-  }
-}
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--text-primary);
+@media (max-width: 480px) {
+  .modal-footer .btn { flex: 1 1 100%; width: 100%; } /* Botões ocupam 100% no celular */
 }
