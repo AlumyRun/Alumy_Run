@@ -1,65 +1,293 @@
+import { supabase } from '../config/supabase.js';
+
 export class StorageService {
   static WORKOUTS_KEY = 'alumy_run_workouts';
   static RACES_KEY = 'alumy_run_races';
+  static realtimeChannel = null;
+  static isRealtimeApplying = false;
+
+  static async getCurrentUser() {
+    if (!supabase) return null;
+    try {
+      const { data } = await supabase.auth.getSession();
+      return data?.session ? data.session.user : null;
+    } catch (e) { return null; }
+  }
 
   // --- WORKOUTS ---
-  static getWorkouts() {
+  static async getWorkouts() {
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 A Sincronizar...');
+        const { data, error } = await supabase.from('workouts').select('*').eq('user_id', user.id);
+        if (!error && data) {
+          localStorage.setItem(this.WORKOUTS_KEY, JSON.stringify(data));
+          this.notifyStatus('synced', '🟢 Sincronizado');
+          return data;
+        }
+      }
+    } catch (e) {
+      this.notifyStatus('offline', '⚪ Offline (Modo Local)');
+    }
+    return this.getWorkoutsLocalCache();
+  }
+
+  static getWorkoutsLocalCache() {
     try {
       const data = localStorage.getItem(this.WORKOUTS_KEY);
       return data ? JSON.parse(data) : [];
-    } catch (e) {
-      return [];
-    }
+    } catch (e) { return []; }
   }
 
-  static saveWorkouts(workouts) {
+  static async addWorkout(workout) {
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 A Sincronizar...');
+        const { error } = await supabase.from('workouts').insert([{
+          id: workout.id, user_id: user.id, date: workout.date, type: workout.type,
+          status: workout.status, planned: workout.planned, completed: workout.completed
+        }]);
+        if (error) throw new Error('Falha ao sincronizar.');
+        this.notifyStatus('synced', '🟢 Sincronizado');
+      }
+    } catch (e) { if (e.message.includes('sincronizar')) throw e; }
+    const workouts = this.getWorkoutsLocalCache();
+    workouts.push(workout);
     localStorage.setItem(this.WORKOUTS_KEY, JSON.stringify(workouts));
   }
 
-  static addWorkout(workout) {
-    const workouts = this.getWorkouts();
-    workouts.push(workout);
-    this.saveWorkouts(workouts);
-  }
-
-  static updateWorkout(updatedWorkout) {
-    const workouts = this.getWorkouts();
+  static async updateWorkout(updatedWorkout) {
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 A Sincronizar...');
+        const { error } = await supabase.from('workouts').update({
+          date: updatedWorkout.date, type: updatedWorkout.type, status: updatedWorkout.status,
+          planned: updatedWorkout.planned, completed: updatedWorkout.completed, updated_at: new Date().toISOString()
+        }).eq('id', updatedWorkout.id).eq('user_id', user.id);
+        if (error) throw new Error('Falha ao atualizar na nuvem.');
+        this.notifyStatus('synced', '🟢 Sincronizado');
+      }
+    } catch (e) { if (e.message.includes('nuvem')) throw e; }
+    const workouts = this.getWorkoutsLocalCache();
     const index = workouts.findIndex(w => w.id === updatedWorkout.id);
     if (index !== -1) {
       workouts[index] = updatedWorkout;
-      this.saveWorkouts(workouts);
+      localStorage.setItem(this.WORKOUTS_KEY, JSON.stringify(workouts));
     }
   }
 
-  static deleteWorkout(id) {
-    let workouts = this.getWorkouts();
+  static async deleteWorkout(id) {
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 A Sincronizar...');
+        const { error } = await supabase.from('workouts').delete().eq('id', id).eq('user_id', user.id);
+        if (error) throw new Error('Falha ao excluir na nuvem.');
+        this.notifyStatus('synced', '🟢 Sincronizado');
+      }
+    } catch (e) { if (e.message.includes('nuvem')) throw e; }
+    let workouts = this.getWorkoutsLocalCache();
     workouts = workouts.filter(w => w.id !== id);
-    this.saveWorkouts(workouts);
+    localStorage.setItem(this.WORKOUTS_KEY, JSON.stringify(workouts));
   }
 
-  static getSortedWorkouts(workouts = null) {
-    const list = workouts || this.getWorkouts();
-    const todayStr = new Date().toISOString().split('T')[0];
+  // --- RACES (PROVAS) ---
+  static async getRaces() {
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        const { data, error } = await supabase.from('races').select('*').eq('user_id', user.id);
+        if (!error && data) {
+          const mappedRaces = data.map(r => ({
+            id: r.id,
+            name: r.name,
+            date: r.date,
+            distance: parseFloat(r.distance),
+            targetTime: r.target_time,
+            location: r.location,
+            notes: r.notes,
+            status: r.status || 'planned',
+            resultTime: r.actual_time || null,
+            resultDistance: r.actual_distance ? parseFloat(r.actual_distance) : null
+          }));
+          localStorage.setItem(this.RACES_KEY, JSON.stringify(mappedRaces));
+          return mappedRaces;
+        }
+      }
+    } catch (e) { console.warn('Lendo cache local de provas.'); }
+    return this.getRacesLocalCache();
+  }
 
+  static getRacesLocalCache() {
+    try {
+      const data = localStorage.getItem(this.RACES_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) { return []; }
+  }
+
+  static async addRace(race) {
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 A Sincronizar...');
+        const { error } = await supabase.from('races').insert([{
+          id: race.id, user_id: user.id, name: race.name, date: race.date, distance: race.distance,
+          target_time: race.targetTime, location: race.location, notes: race.notes,
+          status: race.status || 'planned', actual_time: race.resultTime || null, actual_distance: race.resultDistance || null
+        }]);
+        if (error) throw new Error('Erro ao sincronizar prova.');
+        this.notifyStatus('synced', '🟢 Sincronizado');
+      }
+    } catch (e) { if (e.message.includes('sincronizar')) throw e; }
+    const races = this.getRacesLocalCache();
+    races.push(race);
+    localStorage.setItem(this.RACES_KEY, JSON.stringify(races));
+  }
+
+  static async updateRace(updatedRace) {
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 A Sincronizar...');
+        const { error } = await supabase.from('races').update({
+          name: updatedRace.name, date: updatedRace.date, distance: updatedRace.distance,
+          target_time: updatedRace.targetTime, location: updatedRace.location, notes: updatedRace.notes,
+          status: updatedRace.status || 'planned', actual_time: updatedRace.resultTime || null, 
+          actual_distance: updatedRace.resultDistance || null, updated_at: new Date().toISOString()
+        }).eq('id', updatedRace.id).eq('user_id', user.id);
+        if (error) throw new Error('Erro ao atualizar prova.');
+        this.notifyStatus('synced', '🟢 Sincronizado');
+      }
+    } catch (e) { if (e.message.includes('atualizar')) throw e; }
+    const races = this.getRacesLocalCache();
+    const index = races.findIndex(r => r.id === updatedRace.id);
+    if (index !== -1) {
+      races[index] = updatedRace;
+      localStorage.setItem(this.RACES_KEY, JSON.stringify(races));
+    }
+  }
+
+  static async deleteRace(id) {
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        this.notifyStatus('syncing', '🟡 A Sincronizar...');
+        const { error } = await supabase.from('races').delete().eq('id', id).eq('user_id', user.id);
+        if (error) throw new Error('Erro ao excluir prova.');
+        this.notifyStatus('synced', '🟢 Sincronizado');
+      }
+    } catch (e) { if (e.message.includes('excluir')) throw e; }
+    let races = this.getRacesLocalCache();
+    races = races.filter(r => r.id !== id);
+    localStorage.setItem(this.RACES_KEY, JSON.stringify(races));
+  }
+
+  // --- MIGRAÇÃO & REALTIME ---
+  static async checkMigrationStatus(user) {
+    if (!user) return true;
+    return localStorage.getItem(`migration_status_${user.id}`) === 'completed';
+  }
+
+  static async markMigrationCompleted(userId) {
+    if (userId) localStorage.setItem(`migration_status_${userId}`, 'completed');
+  }
+
+  static async migrateLocalDataToSupabase(userId) {
+    if (!supabase || !userId) return;
+    const localWorkouts = this.getWorkoutsLocalCache();
+    const localRaces = this.getRacesLocalCache();
+
+    try {
+      // Migrar treinos
+      for (const w of localWorkouts) {
+        const { data } = await supabase.from('workouts').select('id').eq('id', w.id).eq('user_id', userId);
+        if (!data || data.length === 0) {
+          await supabase.from('workouts').insert([{
+            id: w.id, user_id: userId, date: w.date, type: w.type,
+            status: w.status, planned: w.planned, completed: w.completed
+          }]);
+        }
+      }
+      // Migrar provas
+      for (const r of localRaces) {
+        const { data } = await supabase.from('races').select('id').eq('id', r.id).eq('user_id', userId);
+        if (!data || data.length === 0) {
+          await supabase.from('races').insert([{
+            id: r.id, user_id: userId, name: r.name, date: r.date, distance: r.distance,
+            target_time: r.targetTime, location: r.location, notes: r.notes,
+            status: r.status || 'planned', actual_time: r.resultTime || null, actual_distance: r.resultDistance || null
+          }]);
+        }
+      }
+      await this.markMigrationCompleted(userId);
+    } catch (err) { throw new Error('Falha ao sincronizar dados offline com a nuvem.'); }
+  }
+
+  static async subscribeToRealtime(onUpdateCallback) {
+    if (!supabase) return;
+    try {
+      const user = await this.getCurrentUser();
+      if (!user) return;
+      if (this.realtimeChannel) supabase.removeChannel(this.realtimeChannel);
+
+      this.realtimeChannel = supabase
+        .channel(`user-sync-${user.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'workouts', filter: `user_id=eq.${user.id}` }, async () => {
+          if (!this.isRealtimeApplying) { this.isRealtimeApplying = true; if (onUpdateCallback) await onUpdateCallback(); this.isRealtimeApplying = false; }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'races', filter: `user_id=eq.${user.id}` }, async () => {
+          if (!this.isRealtimeApplying) { this.isRealtimeApplying = true; if (onUpdateCallback) await onUpdateCallback(); this.isRealtimeApplying = false; }
+        })
+        .subscribe();
+    } catch (e) { console.warn('Realtime offline.'); }
+  }
+
+  static notifyStatus(type, message) {
+    const badge = document.getElementById('sync-status-indicator');
+    if (badge) {
+      badge.innerText = message;
+      badge.className = `sync-indicator-badge sync-${type}`;
+    }
+  }
+
+  // --- HELPERS AUXILIARES ---
+  static getSortedWorkouts(workouts) {
+    const list = workouts || [];
+    const todayStr = new Date().toISOString().split('T')[0];
     const future = [];
     const past = [];
-
     list.forEach(w => {
       if (w.date >= todayStr) future.push(w);
       else past.push(w);
     });
-
     future.sort((a, b) => new Date(a.date) - new Date(b.date));
     past.sort((a, b) => new Date(b.date) - new Date(a.date));
-
     return { future, past, all: [...future, ...past] };
+  }
+
+  static async getNextRace() {
+    const races = await this.getRaces();
+    const todayStr = new Date().toISOString().split('T')[0];
+    const futureRaces = races
+      .filter(r => r.date >= todayStr)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    return futureRaces.length > 0 ? futureRaces[0] : null;
+  }
+
+  static getDaysRemaining(dateStr) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const raceDate = new Date(dateStr + 'T00:00:00');
+    return Math.ceil((raceDate - today) / (1000 * 60 * 60 * 24));
   }
 
   static calculatePace(distanceKm, timeStr) {
     if (!distanceKm || !timeStr) return '0:00';
     const cleanStr = timeStr.toString().trim();
     let totalSeconds = 0;
-
     if (!cleanStr.includes(':')) {
       const minutesOnly = parseFloat(cleanStr);
       if (isNaN(minutesOnly) || minutesOnly <= 0) return '0:00';
@@ -70,120 +298,10 @@ export class StorageService {
       if (parts.length === 3) totalSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
       else if (parts.length === 2) totalSeconds = parts[0] * 60 + parts[1];
     }
-
     if (totalSeconds <= 0 || distanceKm <= 0) return '0:00';
-
     const paceSecTotal = totalSeconds / distanceKm;
     const paceMin = Math.floor(paceSecTotal / 60);
     const paceSec = Math.round(paceSecTotal % 60);
-
     return `${paceMin}:${paceSec < 10 ? '0' : ''}${paceSec}`;
-  }
-
-  // --- PROVAS ---
-  static getRaces() {
-    try {
-      const data = localStorage.getItem(this.RACES_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  static saveRaces(races) {
-    localStorage.setItem(this.RACES_KEY, JSON.stringify(races));
-  }
-
-  static addRace(race) {
-    const races = this.getRaces();
-    races.push(race);
-    this.saveRaces(races);
-  }
-
-  static updateRace(updatedRace) {
-    const races = this.getRaces();
-    const index = races.findIndex(r => r.id === updatedRace.id);
-    if (index !== -1) {
-      races[index] = updatedRace;
-      this.saveRaces(races);
-    }
-  }
-
-  static deleteRace(id) {
-    let races = this.getRaces();
-    races = races.filter(r => r.id !== id);
-    this.saveRaces(races);
-  }
-
-  static getNextRace() {
-    const races = this.getRaces();
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    const futureRaces = races
-      .filter(r => r.date >= todayStr)
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    return futureRaces.length > 0 ? futureRaces[0] : null;
-  }
-
-  static getDaysRemaining(dateStr) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const raceDate = new Date(dateStr + 'T00:00:00');
-    const diffTime = raceDate - today;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  }
-
-  // --- INJEÇÃO DA PLANILHA (RODA 1 VEZ) ---
-  static seedTrainingPlan() {
-    if (localStorage.getItem('plan_seeded_toca_raul_2026')) return;
-
-    let workouts = this.getWorkouts();
-    
-    const plan = [
-      { id: 'plan_2026_08_25', date: '2026-08-25', type: 'Descanso', status: 'rest', planned: { distance: 0, description: 'Descanso após meia maratona de 21,1 km.' } },
-      { id: 'plan_2026_08_26', date: '2026-08-26', type: 'Descanso', status: 'rest', planned: { distance: 0, description: 'Descanso e recuperação pós-meia maratona.' } },
-      { id: 'plan_2026_08_27', date: '2026-08-27', type: 'Regenerativo', status: 'planned', planned: { distance: 5, paceMin: '5:30', paceMax: '6:00', description: '5 km muito leves. Corrida regenerativa após a meia maratona.', objective: 'Recuperação ativa e retorno gradual à corrida.' } },
-      { id: 'plan_2026_08_28', date: '2026-08-28', type: 'Rodagem leve', status: 'planned', planned: { distance: 5, paceMin: '5:20', paceMax: '5:45', description: '5 km leves e confortáveis.' } },
-      { id: 'plan_2026_08_29', date: '2026-08-29', type: 'Descanso', status: 'rest', planned: { distance: 0 } },
-      { id: 'plan_2026_08_30', date: '2026-08-30', type: 'Longão leve', status: 'planned', planned: { distance: 8, paceMin: '5:15', paceMax: '5:40', description: '8 km leves. Sem progressão e sem velocidade.', objective: 'Retomar resistência sem gerar fadiga excessiva.' } },
-      { id: 'plan_2026_08_31', date: '2026-08-31', type: 'Rodagem leve', status: 'planned', planned: { distance: 6, paceMin: '5:15', paceMax: '5:40' } },
-      { id: 'plan_2026_09_01', date: '2026-09-01', type: 'Intervalado', status: 'planned', planned: { distance: 8, isKeyWorkout: true, description: '2 km aquecimento\n5 × 800 m @ 3:55–4:00/km\n400 m trotando entre cada tiro\nDesaquecimento até completar aproximadamente 8 km.', objective: 'Começar a tornar o ritmo próximo de 3:55/km mais controlado.' } },
-      { id: 'plan_2026_09_02', date: '2026-09-02', type: 'Recuperação', status: 'planned', planned: { distance: 5, paceMin: '5:30', paceMax: '6:00' } },
-      { id: 'plan_2026_09_03', date: '2026-09-03', type: 'Limiar', status: 'planned', planned: { distance: 8, description: '2 km leve\n4 km @ 4:25–4:30/km\n2 km leve', objective: 'Desenvolver capacidade de sustentar ritmo forte de maneira controlada.' } },
-      { id: 'plan_2026_09_04', date: '2026-09-04', type: 'Rodagem leve', status: 'planned', planned: { distance: 5, paceMin: '5:20', paceMax: '5:50' } },
-      { id: 'plan_2026_09_05', date: '2026-09-05', type: 'Descanso', status: 'rest', planned: { distance: 0 } },
-      { id: 'plan_2026_09_06', date: '2026-09-06', type: 'Longão progressivo', status: 'planned', planned: { distance: 11, description: 'Primeiros 8 km: 5:15–5:35/km\nÚltimos 3 km: 4:50–5:00/km', objective: 'Trabalhar resistência e capacidade de acelerar com fadiga.' } },
-      { id: 'plan_2026_09_07', date: '2026-09-07', type: 'Rodagem leve', status: 'planned', planned: { distance: 6, paceMin: '5:15', paceMax: '5:40' } },
-      { id: 'plan_2026_09_08', date: '2026-09-08', type: 'Intervalado', status: 'planned', planned: { distance: 9, isKeyWorkout: true, description: '2 km aquecimento\n5 × 1 km @ 3:55–4:00/km\n2 min de trote entre os tiros\nDesaquecimento', objective: 'Aumentar a capacidade de sustentar ritmos próximos ao ritmo de 5 km.' } },
-      { id: 'plan_2026_09_09', date: '2026-09-09', type: 'Recuperação', status: 'planned', planned: { distance: 5, paceMin: '5:30', paceMax: '6:00' } },
-      { id: 'plan_2026_09_10', date: '2026-09-10', type: 'Ritmo específico', status: 'planned', planned: { distance: 9, description: '2 km leve\n5 km @ 4:15–4:20/km\n2 km leve', objective: 'Aproximar gradualmente o corpo do ritmo necessário para os 7 km.' } },
-      { id: 'plan_2026_09_11', date: '2026-09-11', type: 'Regenerativo', status: 'planned', planned: { distance: 5, paceMin: '5:30', paceMax: '6:00' } },
-      { id: 'plan_2026_09_12', date: '2026-09-12', type: 'Descanso', status: 'rest', planned: { distance: 0 } },
-      { id: 'plan_2026_09_13', date: '2026-09-13', type: 'Longão progressivo', status: 'planned', planned: { distance: 12, description: '7 km @ 5:20–5:30/km\n3 km @ 4:55–5:05/km\n2 km @ 4:35–4:45/km', objective: 'Desenvolver resistência e capacidade de acelerar sob fadiga.' } },
-      { id: 'plan_2026_09_14', date: '2026-09-14', type: 'Rodagem leve', status: 'planned', planned: { distance: 6 } },
-      { id: 'plan_2026_09_15', date: '2026-09-15', type: 'Intervalado', status: 'planned', planned: { distance: 9, isKeyWorkout: true, description: '2 km aquecimento\n6 × 800 m @ 3:50–3:55/km\n400 m trotando entre os tiros\nDesaquecimento', objective: 'Transformar o ritmo que anteriormente era limite em um ritmo mais familiar e controlado.' } },
-      { id: 'plan_2026_09_16', date: '2026-09-16', type: 'Recuperação', status: 'planned', planned: { distance: 5, paceMin: '5:30', paceMax: '6:00' } },
-      { id: 'plan_2026_09_17', date: '2026-09-17', type: 'Ritmo específico 7K', status: 'planned', planned: { distance: 9, isKeyWorkout: true, description: '2 km leve\n4 km @ 4:08–4:12/km\n3 km leve', objective: 'Treino específico para a meta de 29:00 nos 7 km.' } },
-      { id: 'plan_2026_09_18', date: '2026-09-18', type: 'Rodagem leve', status: 'planned', planned: { distance: 5 } },
-      { id: 'plan_2026_09_19', date: '2026-09-19', type: 'Descanso', status: 'rest', planned: { distance: 0 } },
-      { id: 'plan_2026_09_20', date: '2026-09-20', type: 'Longão confortável', status: 'planned', planned: { distance: 10, paceMin: '5:10', paceMax: '5:30', description: 'Longão confortável. Sem progressão.', objective: 'Reduzir a carga e iniciar o período de polimento para as provas.' } },
-      { id: 'plan_2026_09_21', date: '2026-09-21', type: 'Rodagem leve', status: 'planned', planned: { distance: 6, paceMin: '5:15', paceMax: '5:40' } },
-      { id: 'plan_2026_09_22', date: '2026-09-22', type: 'Último estímulo de velocidade', status: 'planned', planned: { distance: 6.5, isKeyWorkout: true, description: '2 km leve\n3 × 1 km @ 3:55–4:05/km\n2 min de trote entre os tiros\nDesaquecimento', objective: 'Último estímulo antes das provas. NÃO DEVE GERAR EXAUSTÃO.' } },
-      { id: 'plan_2026_09_23', date: '2026-09-23', type: 'Regenerativo', status: 'planned', planned: { distance: 5, paceMin: '5:30', paceMax: '6:00' } },
-      { id: 'plan_2026_09_24', date: '2026-09-24', type: 'Rodagem + acelerações', status: 'planned', planned: { distance: 4, description: '4 km leve\n4 × 80–100 m de aceleração\nAs acelerações devem ser rápidas, porém controladas. Não são tiros máximos.', objective: 'Ativar a musculatura sem gerar fadiga.' } },
-      { id: 'plan_2026_09_25', date: '2026-09-25', type: 'Descanso', status: 'rest', planned: { distance: 0, description: 'Descanso total. Guardar energia para a primeira prova.' } }
-    ];
-
-    // Injeta os treinos no array se eles não existirem (evitando duplicação)
-    plan.forEach(p => {
-      if (!workouts.some(w => w.id === p.id)) {
-        workouts.push(p);
-      }
-    });
-
-    this.saveWorkouts(workouts);
-    localStorage.setItem('plan_seeded_toca_raul_2026', 'true');
   }
 }
