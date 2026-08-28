@@ -6,11 +6,11 @@ export class CalendarView {
     this.currentDate = new Date();
   }
 
-  render(container) {
+  async render(container) {
     this.container = container;
     
-    const workouts = StorageService.getWorkouts();
-    const races = StorageService.getRaces();
+    const workouts = await StorageService.getWorkouts();
+    const races = await StorageService.getRaces();
 
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth();
