@@ -22,18 +22,24 @@ class App {
     this.isCollapsed = false;
   }
 
-  init() {
+  async init() {
     this.bindEvents();
     this.bindSearch();
-    this.switchView('dashboard');
+    
+    // Injeta a planilha nova 1 vez
+    StorageService.seedTrainingPlan();
+    
+    await this.switchView('dashboard');
   }
 
   bindEvents() {
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', (e) => {
-        const target = e.currentTarget.dataset.target;
-        this.switchView(target);
-      });
+    document.addEventListener('click', async (e) => {
+      const navItem = e.target.closest('.nav-item');
+      if (navItem && navItem.dataset.target) {
+        e.preventDefault();
+        const target = navItem.dataset.target;
+        await this.switchView(target);
+      }
     });
 
     const toggleBtn = document.getElementById('sidebar-toggle');
@@ -47,25 +53,24 @@ class App {
     if (!searchInput) return;
 
     searchInput.removeAttribute('readonly');
-    searchInput.addEventListener('input', (e) => {
+    searchInput.addEventListener('input', async (e) => {
       const query = e.target.value.toLowerCase().trim();
       if (!query) return;
 
-      const workouts = StorageService.getWorkouts();
+      const workouts = await StorageService.getWorkouts();
       const results = workouts.filter(w => {
         return (
           w.type.toLowerCase().includes(query) ||
           w.date.includes(query) ||
           w.status.toLowerCase().includes(query) ||
-          (w.planned.description && w.planned.description.toLowerCase().includes(query)) ||
-          (w.planned.objective && w.planned.objective.toLowerCase().includes(query)) ||
-          (w.planned.distance && w.planned.distance.toString().includes(query))
+          (w.planned?.description && w.planned.description.toLowerCase().includes(query)) ||
+          (w.planned?.objective && w.planned.objective.toLowerCase().includes(query)) ||
+          (w.planned?.distance && w.planned.distance.toString().includes(query))
         );
       });
 
-      // Ao pesquisar, redireciona para a view de treinos e aplica os resultados visuais
       if (this.currentView !== 'workouts') {
-        this.switchView('workouts');
+        await this.switchView('workouts');
       }
 
       const gridFuture = document.getElementById('grid-future');
@@ -91,7 +96,7 @@ class App {
     }
   }
 
-  switchView(viewName) {
+  async switchView(viewName) {
     if (!this.views[viewName]) return;
 
     this.currentView = viewName;
@@ -102,11 +107,10 @@ class App {
     const target = document.getElementById(`view-${viewName}`);
     if (target) {
       target.style.display = 'block';
-      this.views[viewName].render(target);
+      await this.views[viewName].render(target);
     }
 
-    const activeNav = document.querySelector(`.nav-item[data-target="${viewName}"]`);
-    if (activeNav) activeNav.classList.add('active');
+    document.querySelectorAll(`.nav-item[data-target="${viewName}"]`).forEach(el => el.classList.add('active'));
   }
 }
 
