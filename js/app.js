@@ -1,120 +1,125 @@
 import { DashboardView } from './views/DashboardView.js';
-import { CalendarView } from './views/CalendarView.js';
 import { WorkoutsView } from './views/WorkoutsView.js';
-import { EvolutionView } from './views/EvolutionView.js';
-import { RecordsView } from './views/RecordsView.js';
+import { CalendarView } from './views/CalendarView.js';
 import { RacesView } from './views/RacesView.js';
+import { RecordsView } from './views/RecordsView.js';
+import { EvolutionView } from './views/EvolutionView.js';
 import { ProfileView } from './views/ProfileView.js';
-import { StorageService } from './services/StorageService.js';
 
 class App {
   constructor() {
-    this.currentView = 'dashboard';
-    this.views = {
+    this.routes = {
       dashboard: new DashboardView(),
-      calendar: new CalendarView(),
       workouts: new WorkoutsView(),
-      evolution: new EvolutionView(),
-      records: new RecordsView(),
+      calendar: new CalendarView(),
       races: new RacesView(),
+      records: new RecordsView(),
+      evolution: new EvolutionView(),
       profile: new ProfileView()
     };
-    this.isCollapsed = false;
+    
+    this.mainContainer = document.getElementById('app-content') || document.querySelector('main');
+    this.currentView = null;
   }
 
-  async init() {
-    this.bindEvents();
-    this.bindSearch();
+  init() {
+    this.setupNavigation();
+    this.setupMobileMenu();
     
-    // Injeta a planilha nova 1 vez
-    StorageService.seedTrainingPlan();
-    
-    await this.switchView('dashboard');
+    // Captura a rota inicial da URL ou padrão para 'dashboard'
+    const initialView = window.location.hash.replace('#', '') || 'dashboard';
+    this.switchView(initialView);
   }
 
-  bindEvents() {
-    document.addEventListener('click', async (e) => {
-      const navItem = e.target.closest('.nav-item');
-      if (navItem && navItem.dataset.target) {
-        e.preventDefault();
-        const target = navItem.dataset.target;
-        await this.switchView(target);
+  setupNavigation() {
+    // Event listener para links da barra lateral (desktop) e botoes com data-target / data-view
+    document.addEventListener('click', (e) => {
+      const targetEl = e.target.closest('[data-target], [data-view], .nav-item, a[href^="#"]');
+      if (targetEl) {
+        let viewName = targetEl.dataset.target || targetEl.dataset.view;
+        
+        if (!viewName && targetEl.getAttribute('href')) {
+          viewName = targetEl.getAttribute('href').replace('#', '');
+        }
+
+        if (viewName && this.routes[viewName]) {
+          e.preventDefault();
+          this.switchView(viewName);
+        }
       }
     });
 
+    // Detecta mudança de Hash na URL
+    window.addEventListener('hashchange', () => {
+      const viewName = window.location.hash.replace('#', '') || 'dashboard';
+      if (this.currentView !== viewName) {
+        this.switchView(viewName);
+      }
+    });
+  }
+
+  setupMobileMenu() {
+    // Suporte ao botão hambúrguer / recolher sidebar se existente
     const toggleBtn = document.getElementById('sidebar-toggle');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => this.toggleSidebar());
-    }
-  }
-
-  bindSearch() {
-    const searchInput = document.querySelector('.search-input');
-    if (!searchInput) return;
-
-    searchInput.removeAttribute('readonly');
-    searchInput.addEventListener('input', async (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      if (!query) return;
-
-      const workouts = await StorageService.getWorkouts();
-      const results = workouts.filter(w => {
-        return (
-          w.type.toLowerCase().includes(query) ||
-          w.date.includes(query) ||
-          w.status.toLowerCase().includes(query) ||
-          (w.planned?.description && w.planned.description.toLowerCase().includes(query)) ||
-          (w.planned?.objective && w.planned.objective.toLowerCase().includes(query)) ||
-          (w.planned?.distance && w.planned.distance.toString().includes(query))
-        );
+    const sidebar = document.getElementById('sidebar');
+    
+    if (toggleBtn && sidebar) {
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
       });
-
-      if (this.currentView !== 'workouts') {
-        await this.switchView('workouts');
-      }
-
-      const gridFuture = document.getElementById('grid-future');
-      const gridPast = document.getElementById('grid-past');
-      if (gridFuture && gridPast) {
-        const sorted = StorageService.getSortedWorkouts(results);
-        this.views.workouts.renderWorkoutList('grid-future', sorted.future);
-        this.views.workouts.renderWorkoutList('grid-past', sorted.past);
-      }
-    });
-  }
-
-  toggleSidebar() {
-    this.isCollapsed = !this.isCollapsed;
-    const icon = document.querySelector('.toggle-icon');
-
-    if (this.isCollapsed) {
-      document.body.classList.add('sidebar-collapsed');
-      if (icon) icon.innerText = '▶';
-    } else {
-      document.body.classList.remove('sidebar-collapsed');
-      if (icon) icon.innerText = '◀';
     }
   }
 
   async switchView(viewName) {
-    if (!this.views[viewName]) return;
+    const targetView = this.routes[viewName] ? viewName : 'dashboard';
+    const view = this.routes[targetView];
+    this.currentView = targetView;
 
-    this.currentView = viewName;
+    // Atualiza estado ativo nos elementos de navegação (Sidebar e Mobile)
+    document.querySelectorAll('.nav-item, [data-target], [data-view]').forEach(el => {
+      const elTarget = el.dataset.target || el.dataset.view || el.getAttribute('href')?.replace('#', '');
+      if (elTarget === targetView) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+    });
 
-    document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
-    const target = document.getElementById(`view-${viewName}`);
-    if (target) {
-      target.style.display = 'block';
-      await this.views[viewName].render(target);
+    // Atualiza URL sem recarregar a página
+    if (window.location.hash !== `#${targetView}`) {
+      history.pushState(null, '', `#${targetView}`);
     }
 
-    document.querySelectorAll(`.nav-item[data-target="${viewName}"]`).forEach(el => el.classList.add('active'));
+    // Renderiza a view de forma assíncrona aguardando o banco de dados
+    if (this.mainContainer) {
+      this.mainContainer.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 200px; color: var(--text-secondary); font-weight: 500;">
+          <span>Carregando dados...</span>
+        </div>
+      `;
+
+      try {
+        await view.render(this.mainContainer);
+      } catch (error) {
+        console.error(`Erro ao renderizar a view "${targetView}":`, error);
+        this.mainContainer.innerHTML = `
+          <div class="card empty-state" style="padding: 32px; text-align: center;">
+            <h3 style="color: #ef4444; margin-bottom: 8px;">Erro de Carregamento</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Não foi possível carregar os dados deste módulo. Tente recarregar a página.</p>
+          </div>
+        `;
+      }
+    }
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// Inicialização segura quando o DOM estiver totalmente carregado
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.app = new App();
+    window.app.init();
+  });
+} else {
   window.app = new App();
   window.app.init();
-});
+}
