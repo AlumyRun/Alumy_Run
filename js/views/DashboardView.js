@@ -1,23 +1,20 @@
 import { StorageService } from '../services/StorageService.js';
 
 export class DashboardView {
-  render(container) {
-    const workouts = StorageService.getWorkouts();
+  async render(container) {
+    const workouts = await StorageService.getWorkouts();
     const sorted = StorageService.getSortedWorkouts(workouts);
 
     const completedWorkouts = workouts.filter(w => w.status === 'completed');
     const totalKm = completedWorkouts.reduce((acc, w) => acc + (parseFloat(w.completed?.distance) || 0), 0);
     const nextWorkout = sorted.future.find(w => w.status === 'planned');
 
-    // Leitura dinâmica da próxima prova cadastrada
-    const nextRace = StorageService.getNextRace();
-    let nextRaceText = '—';
+    const nextRace = await StorageService.getNextRace();
     let nextRaceSubtext = 'Nenhuma prova cadastrada';
 
     if (nextRace) {
       const days = StorageService.getDaysRemaining(nextRace.date);
       const daysText = days > 0 ? `Faltam ${days} dias` : (days === 0 ? 'É hoje!' : 'Realizada');
-      nextRaceText = `${nextRace.name.split(' ')[0]} (${nextRace.distance}k)`;
       nextRaceSubtext = `${nextRace.location || ''} • ${daysText}`;
     }
 
@@ -40,7 +37,6 @@ export class DashboardView {
         </div>
       </div>
 
-      <!-- TOP METRICS GRID HORIZONTAL -->
       <div class="dash-metrics-row">
         <div class="dash-card">
           <div class="dash-card-title">KM REALIZADOS</div>
@@ -67,15 +63,14 @@ export class DashboardView {
         </div>
       </div>
 
-      <!-- HERO PRÓXIMO TREINO -->
       <div class="dash-hero-card">
         ${nextWorkout ? `
           <div class="hero-left">
             <span class="hero-badge">PRÓXIMO TREINO AGENDADO</span>
-            <h3>${nextWorkout.type} — ${nextWorkout.planned.distance} km</h3>
+            <h3>${nextWorkout.type} — ${nextWorkout.planned.distance === 0 ? 'Descanso' : nextWorkout.planned.distance + ' km'}</h3>
             <p>Data: ${new Date(nextWorkout.date + 'T00:00:00').toLocaleDateString('pt-BR')} | Pace Alvo: ${nextWorkout.planned.paceMin ? `${nextWorkout.planned.paceMin}/km` : 'Livre'}</p>
           </div>
-          <button class="btn btn-secondary" id="btn-view-next-workout">Ver treino</button>
+          <button class="btn btn-secondary" id="btn-view-next-workout" style="color: #0f172a;">Ver treino</button>
         ` : `
           <div class="hero-left">
             <span class="hero-badge">PRÓXIMO TREINO AGENDADO</span>
@@ -85,7 +80,6 @@ export class DashboardView {
         `}
       </div>
 
-      <!-- BLOCOS INFERIORES LADO A LADO -->
       <div class="dash-bottom-row">
         <div class="dash-block">
           <div class="block-header">
@@ -119,7 +113,7 @@ export class DashboardView {
                 </div>
                 <div class="upcoming-info">
                   <strong>${w.type}</strong>
-                  <small>${w.planned.distance} km ${w.planned.paceMin ? `• Pace: ${w.planned.paceMin}/km` : ''}</small>
+                  <small>${w.status === 'rest' ? 'Descanso' : `${w.planned.distance} km ${w.planned.paceMin ? `• Pace: ${w.planned.paceMin}/km` : ''}`}</small>
                 </div>
               </div>
             `).join('') : '<p class="empty-text">Nenhum próximo treino agendado.</p>'}
