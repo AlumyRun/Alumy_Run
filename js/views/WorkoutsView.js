@@ -27,15 +27,14 @@ export class WorkoutsView {
           <button class="btn-filter ${this.currentFilterStatus === 'all' ? 'active' : ''}" data-status="all">Todos</button>
           <button class="btn-filter ${this.currentFilterStatus === 'planned' ? 'active' : ''}" data-status="planned">Planejados</button>
           <button class="btn-filter ${this.currentFilterStatus === 'completed' ? 'active' : ''}" data-status="completed">Concluídos</button>
-          <button class="btn-filter ${this.currentFilterStatus === 'partial' ? 'active' : ''}" data-status="partial">Parciais</button>
-          <button class="btn-filter ${this.currentFilterStatus === 'missed' ? 'active' : ''}" data-status="missed">Não Realizados</button>
+          <button class="btn-filter ${this.currentFilterStatus === 'rest' ? 'active' : ''}" data-status="rest">Descanso</button>
         </div>
 
         <div class="filter-group">
           <span>Tipo:</span>
           <select id="filter-type-select" class="filter-select">
             <option value="all">Todos os tipos</option>
-            ${['Rodagem', 'Longão', 'Intervalado', 'Tiros', 'Tempo Run', 'Regenerativo', 'Fartlek', 'Subida', 'Ritmo de prova', 'Outro']
+            ${['Rodagem leve', 'Regenerativo', 'Intervalado', 'Limiar', 'Ritmo específico', 'Longão leve', 'Descanso', 'Outro']
               .map(t => `<option value="${t}" ${this.currentFilterType === t ? 'selected' : ''}>${t}</option>`).join('')}
           </select>
         </div>
@@ -70,11 +69,12 @@ export class WorkoutsView {
 
   renderWorkoutList(targetId, list) {
     const grid = document.getElementById(targetId);
+    if (!grid) return;
     grid.innerHTML = '';
 
     const filtered = list.filter(w => {
       const matchStatus = this.currentFilterStatus === 'all' || w.status === this.currentFilterStatus;
-      const matchType = this.currentFilterType === 'all' || w.type === this.currentFilterType;
+      const matchType = this.currentFilterType === 'all' || w.type.includes(this.currentFilterType) || this.currentFilterType === 'all';
       return matchStatus && matchType;
     });
 
@@ -88,35 +88,37 @@ export class WorkoutsView {
       card.className = 'card workout-card';
 
       const formattedDate = new Date(w.date + 'T00:00:00').toLocaleDateString('pt-BR');
-      const paceText = w.planned.paceMin && w.planned.paceMax 
+      
+      const paceText = w.status === 'rest' ? '--' : (w.planned.paceMin && w.planned.paceMax 
         ? `${w.planned.paceMin}–${w.planned.paceMax}/km` 
-        : (w.planned.paceMin ? `${w.planned.paceMin}/km` : 'Pace não informado');
+        : (w.planned.paceMin ? `${w.planned.paceMin}/km` : 'Livre'));
 
-      const statusMap = {
-        planned: { label: 'PLANEJADO', class: 'status-planned' },
-        completed: { label: 'CONCLUÍDO', class: 'status-completed' },
-        partial: { label: 'PARCIAL', class: 'status-partial' },
-        missed: { label: 'NÃO REALIZADO', class: 'status-missed' }
-      };
+      let statusBadge = '';
+      if (w.status === 'completed') statusBadge = '<span class="status-badge status-completed">CONCLUÍDO</span>';
+      else if (w.status === 'rest') statusBadge = '<span class="status-badge" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;">DESCANSO</span>';
+      else if (w.status === 'partial') statusBadge = '<span class="status-badge status-partial">PARCIAL</span>';
+      else statusBadge = '<span class="status-badge status-planned">PLANEJADO</span>';
 
-      const st = statusMap[w.status] || statusMap.planned;
+      const formattedDesc = w.planned.description ? w.planned.description.replace(/\n/g, '<br>') : '';
+      const keyBadge = w.planned.isKeyWorkout ? `<div style="background: #fef3c7; color: #b45309; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; display: inline-block; margin-bottom: 8px;">⭐ TREINO-CHAVE</div>` : '';
 
       card.innerHTML = `
         <div class="workout-card-header">
           <div>
+            ${keyBadge}
             <div class="workout-type">${w.type}</div>
             <div class="workout-date">${formattedDate}</div>
           </div>
-          <span class="status-badge ${st.class}">${st.label}</span>
+          ${statusBadge}
         </div>
 
         <div class="workout-card-body">
           <div class="workout-meta-row">
-            <span>📏 Planejado: <strong>${w.planned.distance} km</strong></span>
+            <span>📏 Planejado: <strong>${w.status === 'rest' ? '--' : w.planned.distance + ' km'}</strong></span>
             <span>🎯 Pace: <strong>${paceText}</strong></span>
           </div>
 
-          ${w.planned.description ? `<p class="workout-desc">${w.planned.description}</p>` : ''}
+          ${formattedDesc ? `<p class="workout-desc" style="line-height: 1.5;">${formattedDesc}</p>` : ''}
           ${w.planned.objective ? `<p class="workout-obj"><strong>Objetivo:</strong> ${w.planned.objective}</p>` : ''}
 
           ${w.completed ? `
@@ -133,22 +135,24 @@ export class WorkoutsView {
         </div>
 
         <div class="workout-card-footer">
-          <button class="btn btn-sm btn-complete">${w.status === 'completed' ? 'Editar Resultado' : 'Marcar como Concluído'}</button>
+          ${w.status !== 'rest' ? `<button class="btn btn-sm btn-complete">${w.status === 'completed' ? 'Editar Resultado' : 'Marcar como Concluído'}</button>` : ''}
           <button class="btn btn-sm btn-secondary btn-edit">Editar</button>
           <button class="btn btn-sm btn-danger btn-delete">Excluir</button>
         </div>
       `;
 
-      card.querySelector('.btn-complete').onclick = () => {
-        WorkoutModal.openComplete(w, () => this.render(this.container));
-      };
+      if (w.status !== 'rest') {
+        card.querySelector('.btn-complete').onclick = () => {
+          WorkoutModal.openComplete(w, () => this.render(this.container));
+        };
+      }
 
       card.querySelector('.btn-edit').onclick = () => {
         WorkoutModal.openCreateOrEdit(w, () => this.render(this.container));
       };
 
       card.querySelector('.btn-delete').onclick = () => {
-        if (confirm('Tem certeza que deseja excluir este treino?')) {
+        if (confirm('Tem certeza que deseja excluir este registro?')) {
           StorageService.deleteWorkout(w.id);
           this.render(this.container);
         }
