@@ -1,313 +1,125 @@
 import { StorageService } from '../services/StorageService.js';
 
 export class RecordsView {
-  constructor() {
-    // Novas distâncias de referência exigidas
-    this.targetDistances = [
-      { label: '1 KM', distance: 1 },
-      { label: '5 KM', distance: 5 },
-      { label: '10 KM', distance: 10 },
-      { label: '15 KM', distance: 15 },
-      { label: '21,1 KM', distance: 21.1 },
-      { label: '30 KM', distance: 30 },
-      { label: '42,2 KM', distance: 42.2 }
-    ];
-  }
-
-  render(container) {
+  async render(container) {
     this.container = container;
+    
+    let workouts = [];
+    let races = [];
+    
+    try {
+      workouts = await StorageService.getWorkouts();
+      races = await StorageService.getRaces();
+    } catch (e) {
+      console.warn("Erro ao buscar dados do Supabase na RecordsView:", e);
+    }
 
-    const workouts = StorageService.getWorkouts();
-    const races = StorageService.getRaces();
+    const completedWorkouts = (workouts || []).filter(w => w && w.status === 'completed' && w.completed);
+    const completedRaces = (races || []).filter(r => r && r.status === 'completed' && r.resultTime && r.resultDistance);
 
-    const recordsMap = this.calculatePersonalRecords(workouts, races);
+    // Unifica treinos e provas concluídas
+    const allActivities = [
+      ...completedWorkouts.map(w => ({
+        id: w.id,
+        name: w.type || 'Treino',
+        date: w.date,
+        distance: parseFloat(w.completed.distance) || 0,
+        time: w.completed.time || '00:00:00',
+        pace: w.completed.pace || StorageService.calculatePace(parseFloat(w.completed.distance), w.completed.time),
+        type: 'workout'
+      })),
+      ...completedRaces.map(r => ({
+        id: r.id,
+        name: r.name,
+        date: r.date,
+        distance: parseFloat(r.resultDistance) || 0,
+        time: r.resultTime || '00:00:00',
+        pace: StorageService.calculatePace(parseFloat(r.resultDistance), r.resultTime),
+        type: 'race'
+      }))
+    ];
+
+    const distancesDef = [
+      { key: '5k', label: '5 KM', targetKm: 5, tolerance: 0.6 },
+      { key: '10k', label: '10 KM', targetKm: 10, tolerance: 0.8 },
+      { key: '21k', label: '21 KM (MEIA MARATONA)', targetKm: 21.097, tolerance: 1.2 },
+      { key: '42k', label: '42 KM (MARATONA)', targetKm: 42.195, tolerance: 2.0 }
+    ];
 
     container.innerHTML = `
       <div class="page-title-bar">
         <div>
-          <h1 class="page-title">🏆 Recordes Pessoais</h1>
-          <p class="card-subtext">Seus melhores resultados e passagens calculados a partir dos treinos e provas.</p>
+          <h1 class="page-title">Recordes Pessoais (RPs)</h1>
+          <p class="card-subtext">Seus melhores tempos históricos validados por provas e treinos.</p>
         </div>
       </div>
 
-      <div class="records-grid" id="records-cards-grid"></div>
-
-      <div class="card" style="margin-top: 24px;">
-        <div class="block-header" style="margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
-          <h3>Histórico de Recordes e Superações</h3>
-        </div>
-        <div id="records-history-list" class="recent-completed-list"></div>
-      </div>
+      <div class="records-grid" id="records-cards-container"></div>
     `;
 
-    this.renderRecordsCards(recordsMap);
-    this.renderRecordsHistory(recordsMap);
-  }
+    const grid = document.getElementById('records-cards-container');
+    grid.innerHTML = '';
 
-  calculatePersonalRecords(workouts, races) {
-    const recordsMap = {};
+    distancesDef.forEach(def => {
+      // Busca atividades que se enquadram na tolerância da distância
+      const matches = allActivities.filter(a => Math.abs(a.distance - def.targetKm) <= def.tolerance);
 
-    this.targetDistances.forEach(item => {
-      recordsMap[item.label] = {
-        distanceNum: item.distance,
-        overallBest: null,
-        workoutBest: null,
-        raceBest: null,
-        history: []
-      };
-    });
+      let bestRecord = null;
+      let bestSeconds = Infinity;
 
-    // 1. PROCESSAR TREINOS (Com extrapolação de distâncias menores)
-    workouts.forEach(w => {
-      if (w.status === 'completed' && w.completed && parseFloat(w.completed.distance) > 0 && w.completed.time) {
-        const dist = parseFloat(w.completed.distance);
-        const timeSecs = this.parseTimeToSeconds(w.completed.time);
-
-        if (timeSecs <= 0) return;
-
-        const paceSecs = timeSecs / dist; // Segundos por km
-        const paceStr = w.completed.pace && w.completed.pace !== '0:00' 
-            ? w.completed.pace 
-            : StorageService.calculatePace(dist, w.completed.time);
-
-        // Se o treino tem distância MAIOR ou IGUAL a um RP, ele calcula a passagem
-        this.targetDistances.forEach(target => {
-          if (dist >= target.distance) {
-            // Calcula o tempo proporcional para essa marca
-            const extrapolatedTimeSecs = Math.round(target.distance * paceSecs);
-
-            const recordEntry = {
-              id: w.id,
-              type: 'workout',
-              sourceLabel: '🏃 Treino',
-              title: dist === target.distance ? w.type : `${w.type} (Passagem em ${dist} km)`,
-              date: w.date,
-              distance: target.distance,
-              timeStr: this.formatSecondsToTime(extrapolatedTimeSecs),
-              timeSecs: extrapolatedTimeSecs,
-              paceStr: paceStr
-            };
-
-            const recKey = target.label;
-            const group = recordsMap[recKey];
-
-            if (!group.workoutBest || extrapolatedTimeSecs < group.workoutBest.timeSecs) {
-              group.workoutBest = recordEntry;
-            }
-            group.history.push(recordEntry);
-          }
-        });
-      }
-    });
-
-    // 2. PROCESSAR PROVAS (Utilizando apenas 'resultTime' para ignorar as Metas)
-    races.forEach(r => {
-      if (r.resultTime && r.date) {
-        const dist = parseFloat(r.distance);
-        const timeSecs = this.parseTimeToSeconds(r.resultTime);
-
-        if (timeSecs <= 0) return;
-
-        const paceSecs = timeSecs / dist;
-        const paceStr = StorageService.calculatePace(dist, r.resultTime);
-
-        this.targetDistances.forEach(target => {
-          if (dist >= target.distance) {
-            const extrapolatedTimeSecs = Math.round(target.distance * paceSecs);
-
-            const recordEntry = {
-              id: r.id,
-              type: 'race',
-              sourceLabel: '🏁 Prova',
-              title: dist === target.distance ? r.name : `${r.name} (Passagem em ${dist} km)`,
-              location: r.location,
-              date: r.date,
-              distance: target.distance,
-              timeStr: this.formatSecondsToTime(extrapolatedTimeSecs),
-              timeSecs: extrapolatedTimeSecs,
-              paceStr: paceStr
-            };
-
-            const recKey = target.label;
-            const group = recordsMap[recKey];
-
-            if (!group.raceBest || extrapolatedTimeSecs < group.raceBest.timeSecs) {
-              group.raceBest = recordEntry;
-            }
-            group.history.push(recordEntry);
-          }
-        });
-      }
-    });
-
-    // 3. DETERMINAR RP GERAL E MONTA HISTÓRICO
-    Object.keys(recordsMap).forEach(key => {
-      const group = recordsMap[key];
-
-      group.history.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      let currentBestSecs = Infinity;
-      const progression = [];
-
-      group.history.forEach(entry => {
-        if (entry.timeSecs < currentBestSecs) {
-          if (currentBestSecs !== Infinity) {
-            const diffSecs = currentBestSecs - entry.timeSecs;
-            progression.push({
-              distanceLabel: key,
-              previousTime: this.formatSecondsToTime(currentBestSecs),
-              newTime: entry.timeStr,
-              diffSecs: diffSecs,
-              date: entry.date,
-              title: entry.title,
-              sourceLabel: entry.sourceLabel
-            });
-          }
-          currentBestSecs = entry.timeSecs;
+      matches.forEach(act => {
+        const secs = this.parseTimeToSeconds(act.time);
+        if (secs > 0 && secs < bestSeconds) {
+          bestSeconds = secs;
+          bestRecord = act;
         }
       });
 
-      group.progression = progression;
-
-      if (group.workoutBest && group.raceBest) {
-        group.overallBest = group.workoutBest.timeSecs <= group.raceBest.timeSecs 
-          ? group.workoutBest 
-          : group.raceBest;
-      } else {
-        group.overallBest = group.workoutBest || group.raceBest || null;
-      }
-    });
-
-    return recordsMap;
-  }
-
-  renderRecordsCards(recordsMap) {
-    const grid = document.getElementById('records-cards-grid');
-    grid.innerHTML = '';
-
-    let hasAnyRecord = false;
-
-    this.targetDistances.forEach(item => {
-      const group = recordsMap[item.label];
       const card = document.createElement('div');
       card.className = 'card record-card';
 
-      if (group.overallBest) {
-        hasAnyRecord = true;
-        const best = group.overallBest;
-        const formattedDate = new Date(best.date + 'T00:00:00').toLocaleDateString('pt-BR');
-
-        const isRace = best.type === 'race';
+      if (bestRecord) {
+        const formattedDate = new Date(bestRecord.date + 'T00:00:00').toLocaleDateString('pt-BR');
+        const badgeType = bestRecord.type === 'race' ? '🏁 PROVA' : '🏃 TREINO';
 
         card.innerHTML = `
           <div class="record-card-header">
-            <span class="record-distance-title">${item.label}</span>
-            <span class="status-badge ${isRace ? 'status-completed' : 'status-planned'}">
-              ${best.sourceLabel}
-            </span>
+            <span class="record-distance-title">${def.label}</span>
+            <span class="status-badge status-completed">${badgeType}</span>
           </div>
-
-          <div class="record-card-main">
-            <div class="record-time-highlight">🏆 ${best.timeStr}</div>
-            <div class="record-pace-sub">Pace ${best.paceStr}/km</div>
-          </div>
-
-          <div class="record-card-details">
+          <div class="record-time-highlight">${bestRecord.time}</div>
+          <div class="record-pace-sub">Pace Médio: <strong>${bestRecord.pace}/km</strong></div>
+          
+          <div style="border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 12px;">
             <div class="record-detail-line">
-              <span>Melhor resultado:</span> <strong>${best.title}</strong>
+              <span>Atividade:</span>
+              <strong>${bestRecord.name}</strong>
             </div>
             <div class="record-detail-line">
-              <span>Data:</span> <strong>${formattedDate}</strong>
+              <span>Distância Real:</span>
+              <strong>${bestRecord.distance.toFixed(2).replace('.', ',')} km</strong>
             </div>
-          </div>
-
-          <div class="record-sub-comparison">
-            <div class="sub-comp-item">
-              <span>RP Treino:</span>
-              <strong>${group.workoutBest ? group.workoutBest.timeStr : '—'}</strong>
-            </div>
-            <div class="sub-comp-item">
-              <span>RP Prova:</span>
-              <strong>${group.raceBest ? group.raceBest.timeStr : '—'}</strong>
+            <div class="record-detail-line">
+              <span>Data Conquista:</span>
+              <strong>${formattedDate}</strong>
             </div>
           </div>
         `;
       } else {
         card.innerHTML = `
           <div class="record-card-header">
-            <span class="record-distance-title">${item.label}</span>
-            <span class="status-badge status-missed">—</span>
+            <span class="record-distance-title">${def.label}</span>
+            <span class="status-badge" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;">PENDENTE</span>
           </div>
-
-          <div class="record-card-main" style="padding: 18px 0; text-align: center;">
-            <div class="record-time-empty" style="font-size: 1.5rem; color: var(--text-muted); font-weight: 700;">—</div>
-            <div class="record-pace-sub" style="color: var(--text-muted);">Sem resultado registrado</div>
-          </div>
-
-          <div class="record-card-details" style="border-top: 1px dashed var(--border); padding-top: 8px;">
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Conclua um treino ou prova de ${item.label} ou mais para registrar seu RP.</span>
+          <div class="record-time-highlight" style="color: var(--text-muted);">--:--:--</div>
+          <div class="record-pace-sub">Pace Médio: <strong>--/km</strong></div>
+          <div class="record-sub-comparison">
+            <span>Nenhuma atividade registrada próximo a esta distância.</span>
           </div>
         `;
       }
 
       grid.appendChild(card);
-    });
-
-    if (!hasAnyRecord) {
-      grid.insertAdjacentHTML('beforebegin', `
-        <div class="card empty-state" style="margin-bottom: 20px; padding: 24px; text-align: center;">
-          <p style="font-size: 0.9rem; color: var(--text-secondary);">
-            Seus recordes aparecerão aqui conforme você registrar seus treinos e provas concluídos.
-          </p>
-        </div>
-      `);
-    }
-  }
-
-  renderRecordsHistory(recordsMap) {
-    const historyListEl = document.getElementById('records-history-list');
-    historyListEl.innerHTML = '';
-
-    const allProgressions = [];
-
-    Object.keys(recordsMap).forEach(key => {
-      if (recordsMap[key].progression) {
-        allProgressions.push(...recordsMap[key].progression);
-      }
-    });
-
-    if (allProgressions.length === 0) {
-      historyListEl.innerHTML = `
-        <p class="empty-text">Nenhuma superação de recorde registrada até o momento.</p>
-      `;
-      return;
-    }
-
-    allProgressions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    allProgressions.forEach(prog => {
-      const formattedDate = new Date(prog.date + 'T00:00:00').toLocaleDateString('pt-BR');
-      const item = document.createElement('div');
-      item.className = 'upcoming-item';
-      item.style.justifyContent = 'space-between';
-
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div class="upcoming-date" style="background: #10b981;">🏆 ${prog.distanceLabel}</div>
-          <div class="upcoming-info">
-            <strong>🎉 NOVO RECORDE PESSOAL!</strong>
-            <small>${prog.sourceLabel}: ${prog.title} • ${formattedDate}</small>
-          </div>
-        </div>
-        <div style="text-align: right;">
-          <strong style="font-size: 0.9rem; color: var(--text-primary); display: block;">
-            ${prog.previousTime} ➔ <span style="color: #047857;">${prog.newTime}</span>
-          </strong>
-          <small style="color: #047857; font-weight: 700;">Melhoria de ${prog.diffSecs} segundos</small>
-        </div>
-      `;
-
-      historyListEl.appendChild(item);
     });
   }
 
@@ -320,26 +132,8 @@ export class RecordsView {
     }
     const parts = cleanStr.split(':').map(Number);
     if (parts.some(isNaN)) return 0;
-
     if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
     if (parts.length === 2) return parts[0] * 60 + parts[1];
     return 0;
-  }
-
-  formatSecondsToTime(totalSeconds) {
-    if (!totalSeconds || totalSeconds <= 0) return '00:00';
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = Math.round(totalSeconds % 60);
-
-    const mStr = minutes < 10 ? `0${minutes}` : `${minutes}`;
-    const sStr = seconds < 10 ? `0${seconds}` : `${seconds}`;
-
-    if (hours > 0) {
-      const hStr = hours < 10 ? `0${hours}` : `${hours}`;
-      return `${hStr}:${mStr}:${sStr}`;
-    }
-
-    return `${mStr}:${sStr}`;
   }
 }
