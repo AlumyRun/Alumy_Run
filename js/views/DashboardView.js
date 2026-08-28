@@ -6,7 +6,7 @@ export class DashboardView {
     const sorted = StorageService.getSortedWorkouts(workouts);
 
     const completedWorkouts = workouts.filter(w => w.status === 'completed');
-    const totalKm = completedWorkouts.reduce((acc, w) => acc + (parseFloat(w.completed?.distance) || 0), 0);
+    const totalKm = completedWorkouts.reduce((acc, w) => acc + (parseFloat(w.completed && w.completed.distance) || 0), 0);
     const nextWorkout = sorted.future.find(w => w.status === 'planned');
 
     const nextRace = await StorageService.getNextRace();
@@ -28,6 +28,32 @@ export class DashboardView {
     }).length;
 
     const upcomingList = sorted.future.slice(0, 3);
+
+    let heroHtml = `
+      <div class="hero-left">
+        <span class="hero-badge">PRÓXIMO TREINO AGENDADO</span>
+        <h3>Nenhum treino programado</h3>
+        <p>Seus próximos treinos aparecerão aqui assim que forem cadastrados.</p>
+      </div>
+    `;
+
+    if (nextWorkout) {
+      let wTitle = nextWorkout.type;
+      let wPace = 'Livre';
+      if (nextWorkout.planned) {
+        if (nextWorkout.planned.distance === 0) wTitle += ' — Descanso';
+        else if (nextWorkout.planned.distance) wTitle += ` — ${nextWorkout.planned.distance} km`;
+        if (nextWorkout.planned.paceMin) wPace = `${nextWorkout.planned.paceMin}/km`;
+      }
+      heroHtml = `
+        <div class="hero-left">
+          <span class="hero-badge">PRÓXIMO TREINO AGENDADO</span>
+          <h3>${wTitle}</h3>
+          <p>Data: ${new Date(nextWorkout.date + 'T00:00:00').toLocaleDateString('pt-BR')} | Pace Alvo: ${wPace}</p>
+        </div>
+        <button class="btn btn-secondary" id="btn-view-next-workout" style="color: #0f172a;">Ver treino</button>
+      `;
+    }
 
     container.innerHTML = `
       <div class="page-title-bar">
@@ -64,20 +90,7 @@ export class DashboardView {
       </div>
 
       <div class="dash-hero-card">
-        ${nextWorkout ? `
-          <div class="hero-left">
-            <span class="hero-badge">PRÓXIMO TREINO AGENDADO</span>
-            <h3>${nextWorkout.type} — ${nextWorkout.planned.distance === 0 ? 'Descanso' : nextWorkout.planned.distance + ' km'}</h3>
-            <p>Data: ${new Date(nextWorkout.date + 'T00:00:00').toLocaleDateString('pt-BR')} | Pace Alvo: ${nextWorkout.planned.paceMin ? `${nextWorkout.planned.paceMin}/km` : 'Livre'}</p>
-          </div>
-          <button class="btn btn-secondary" id="btn-view-next-workout" style="color: #0f172a;">Ver treino</button>
-        ` : `
-          <div class="hero-left">
-            <span class="hero-badge">PRÓXIMO TREINO AGENDADO</span>
-            <h3>Nenhum treino programado</h3>
-            <p>Seus próximos treinos aparecerão aqui assim que forem cadastrados.</p>
-          </div>
-        `}
+        ${heroHtml}
       </div>
 
       <div class="dash-bottom-row">
@@ -106,17 +119,23 @@ export class DashboardView {
             <h3>Próximos Treinos</h3>
           </div>
           <div class="upcoming-list">
-            ${upcomingList.length > 0 ? upcomingList.map(w => `
+            ${upcomingList.length > 0 ? upcomingList.map(w => {
+              let distText = '';
+              if (w.status === 'rest') distText = 'Descanso';
+              else if (w.planned && w.planned.distance) distText = `${w.planned.distance} km ${w.planned.paceMin ? `• Pace: ${w.planned.paceMin}/km` : ''}`;
+              
+              return `
               <div class="upcoming-item">
                 <div class="upcoming-date">
                   <span>${new Date(w.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
                 </div>
                 <div class="upcoming-info">
                   <strong>${w.type}</strong>
-                  <small>${w.status === 'rest' ? 'Descanso' : `${w.planned.distance} km ${w.planned.paceMin ? `• Pace: ${w.planned.paceMin}/km` : ''}`}</small>
+                  <small>${distText}</small>
                 </div>
               </div>
-            `).join('') : '<p class="empty-text">Nenhum próximo treino agendado.</p>'}
+              `;
+            }).join('') : '<p class="empty-text">Nenhum próximo treino agendado.</p>'}
           </div>
         </div>
       </div>
