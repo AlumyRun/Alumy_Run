@@ -7,9 +7,9 @@ export class WorkoutsView {
     this.currentFilterType = 'all';
   }
 
-  render(container) {
+  async render(container) {
     this.container = container;
-    const workouts = StorageService.getWorkouts();
+    const workouts = await StorageService.getWorkouts();
     const sorted = StorageService.getSortedWorkouts(workouts);
 
     container.innerHTML = `
