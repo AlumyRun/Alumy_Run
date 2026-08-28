@@ -89,9 +89,10 @@ export class WorkoutsView {
 
       const formattedDate = new Date(w.date + 'T00:00:00').toLocaleDateString('pt-BR');
       
-      const paceText = w.status === 'rest' ? '--' : (w.planned.paceMin && w.planned.paceMax 
-        ? `${w.planned.paceMin}–${w.planned.paceMax}/km` 
-        : (w.planned.paceMin ? `${w.planned.paceMin}/km` : 'Livre'));
+      let paceText = 'Livre';
+      if (w.status === 'rest') paceText = '--';
+      else if (w.planned && w.planned.paceMin && w.planned.paceMax) paceText = `${w.planned.paceMin}–${w.planned.paceMax}/km`;
+      else if (w.planned && w.planned.paceMin) paceText = `${w.planned.paceMin}/km`;
 
       let statusBadge = '';
       if (w.status === 'completed') statusBadge = '<span class="status-badge status-completed">CONCLUÍDO</span>';
@@ -99,8 +100,25 @@ export class WorkoutsView {
       else if (w.status === 'partial') statusBadge = '<span class="status-badge status-partial">PARCIAL</span>';
       else statusBadge = '<span class="status-badge status-planned">PLANEJADO</span>';
 
-      const formattedDesc = w.planned.description ? w.planned.description.replace(/\n/g, '<br>') : '';
-      const keyBadge = w.planned.isKeyWorkout ? `<div style="background: #fef3c7; color: #b45309; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; display: inline-block; margin-bottom: 8px;">⭐ TREINO-CHAVE</div>` : '';
+      const formattedDesc = (w.planned && w.planned.description) ? w.planned.description.replace(/\n/g, '<br>') : '';
+      const keyBadge = (w.planned && w.planned.isKeyWorkout) ? `<div style="background: #fef3c7; color: #b45309; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; display: inline-block; margin-bottom: 8px;">⭐ TREINO-CHAVE</div>` : '';
+      const distText = (w.planned && w.planned.distance !== undefined) ? w.planned.distance + ' km' : '--';
+      const objText = (w.planned && w.planned.objective) ? `<p class="workout-obj"><strong>Objetivo:</strong> ${w.planned.objective}</p>` : '';
+
+      let completedHtml = '';
+      if (w.completed) {
+        completedHtml = `
+          <div class="workout-comparison-box">
+            <div class="comp-title">REALIZADO</div>
+            <div class="comp-details">
+              <span><strong>${w.completed.distance || '--'} km</strong></span> | 
+              <span>Tempo: <strong>${w.completed.time || '--'}</strong></span> | 
+              <span>Pace: <strong>${w.completed.pace || '--'}/km</strong></span>
+            </div>
+            ${w.completed.feeling ? `<div class="comp-feeling">Percepção: ${w.completed.feeling}</div>` : ''}
+          </div>
+        `;
+      }
 
       card.innerHTML = `
         <div class="workout-card-header">
@@ -114,24 +132,13 @@ export class WorkoutsView {
 
         <div class="workout-card-body">
           <div class="workout-meta-row">
-            <span>📏 Planejado: <strong>${w.status === 'rest' ? '--' : w.planned.distance + ' km'}</strong></span>
+            <span>📏 Planejado: <strong>${w.status === 'rest' ? '--' : distText}</strong></span>
             <span>🎯 Pace: <strong>${paceText}</strong></span>
           </div>
 
           ${formattedDesc ? `<p class="workout-desc" style="line-height: 1.5;">${formattedDesc}</p>` : ''}
-          ${w.planned.objective ? `<p class="workout-obj"><strong>Objetivo:</strong> ${w.planned.objective}</p>` : ''}
-
-          ${w.completed ? `
-            <div class="workout-comparison-box">
-              <div class="comp-title">REALIZADO</div>
-              <div class="comp-details">
-                <span><strong>${w.completed.distance} km</strong></span> | 
-                <span>Tempo: <strong>${w.completed.time}</strong></span> | 
-                <span>Pace: <strong>${w.completed.pace}/km</strong></span>
-              </div>
-              ${w.completed.feeling ? `<div class="comp-feeling">Percepção: ${w.completed.feeling}</div>` : ''}
-            </div>
-          ` : ''}
+          ${objText}
+          ${completedHtml}
         </div>
 
         <div class="workout-card-footer">
