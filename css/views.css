@@ -1,159 +1,357 @@
 /* ==========================================================================
-   DASHBOARD CARDS (GRID FLUIDA)
+   ESTILOS GERAIS DE VIEWS E DASHBOARD
    ========================================================================== */
+
+/* GRID DE MÉTRICAS (4 CARDS LADO A LADO) */
 .dash-metrics-row {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
-  gap: clamp(12px, 2vw, 16px) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 16px !important;
+  margin-bottom: 20px !important;
   width: 100% !important;
-  margin-bottom: 24px !important;
 }
 
 .dash-card {
-  width: 100% !important;
-  box-sizing: border-box !important;
+  flex: 1 1 0px !important;
+  min-width: 0 !important;
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
   border-radius: var(--radius-md) !important;
-  padding: clamp(14px, 2vw, 18px) !important;
+  padding: 16px 18px !important;
+  box-shadow: var(--shadow-sm) !important;
   display: flex !important;
   flex-direction: column !important;
+  justify-content: space-between !important;
 }
 
-.dash-card-title { font-size: 0.7rem !important; font-weight: 800 !important; color: var(--text-secondary) !important; margin-bottom: 4px !important; text-transform: uppercase !important; }
-.dash-card-value { font-size: clamp(1.3rem, 3vw, 1.6rem) !important; font-weight: 800 !important; color: var(--text-primary) !important; line-height: 1.2 !important; }
-.dash-card-subtext { font-size: 0.75rem !important; color: var(--text-muted) !important; margin-top: 6px !important; }
+.dash-card-title {
+  font-size: 0.7rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: 4px !important;
+  text-transform: uppercase !important;
+}
 
-/* HERO CARD */
+.dash-card-value {
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.2 !important;
+}
+
+.dash-card-value small {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+}
+
+.dash-card-subtext {
+  font-size: 0.75rem !important;
+  color: var(--text-muted) !important;
+  margin-top: 6px !important;
+}
+
+/* HERO CARD COMPACTO */
 .dash-hero-card {
   background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%) !important;
   color: #ffffff !important;
   border-radius: var(--radius-md) !important;
-  padding: clamp(16px, 3vw, 24px) !important;
-  margin-bottom: 24px !important;
+  padding: 18px 22px !important;
+  margin-bottom: 20px !important;
   display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 16px !important;
   justify-content: space-between !important;
   align-items: center !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
-/* DASH BOTTOM ROW */
+.hero-left .hero-badge {
+  font-size: 0.7rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  color: #60a5fa !important;
+}
+
+.hero-left h3 {
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  margin-top: 2px !important;
+  color: #ffffff !important;
+}
+
+.hero-left p {
+  font-size: 0.85rem !important;
+  color: #94a3b8 !important;
+  margin-top: 2px !important;
+}
+
+/* BLOCOS INFERIORES LADO A LADO */
 .dash-bottom-row {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 16px !important;
   width: 100% !important;
 }
 
 .dash-block {
-  width: 100% !important;
+  flex: 1 1 0px !important;
+  min-width: 0 !important;
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
   border-radius: var(--radius-md) !important;
-  padding: clamp(14px, 2vw, 20px) !important;
-  box-sizing: border-box !important;
+  padding: 18px 20px !important;
+  box-shadow: var(--shadow-sm) !important;
 }
+
+.block-header {
+  margin-bottom: 12px !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding-bottom: 8px !important;
+}
+
+.block-header h3 {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  color: var(--text-primary) !important;
+}
+
+.summary-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.summary-item {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 0.85rem !important;
+  padding: 6px 0 !important;
+  border-bottom: 1px dashed var(--border) !important;
+}
+
+.summary-item:last-child {
+  border-bottom: none !important;
+}
+
+.summary-item span { color: var(--text-secondary) !important; }
+.summary-item strong { color: var(--text-primary) !important; }
+
+.upcoming-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.upcoming-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 8px 10px !important;
+  background: var(--background) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.upcoming-date {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  min-width: 54px !important;
+  text-align: center !important;
+}
+
+.upcoming-info {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.upcoming-info strong { font-size: 0.85rem !important; color: var(--text-primary) !important; }
+.upcoming-info small { font-size: 0.75rem !important; color: var(--text-secondary) !important; }
+.empty-text { font-size: 0.85rem !important; color: var(--text-muted) !important; text-align: center !important; padding: 12px 0 !important; }
 
 /* ==========================================================================
-   WORKOUTS & RACES (GRIDS)
+   ESTILOS DE TREINOS & MÓDULOS
    ========================================================================== */
-.workouts-grid {
+.filter-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+.filter-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); }
+.btn-filter { background: var(--background); border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; color: var(--text-primary); transition: var(--transition); }
+.btn-filter.active, .btn-filter:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+.filter-select { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--background); color: var(--text-primary); outline: none; }
+.workouts-section-title { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 12px; }
+.workouts-grid { display: flex; flex-direction: column; gap: 16px; }
+.workout-card { display: flex; flex-direction: column; gap: 12px; }
+.workout-card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.workout-type { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
+.workout-date { font-size: 0.8rem; color: var(--text-secondary); }
+.status-badge { padding: 4px 8px; border-radius: var(--radius-sm); font-size: 0.7rem; font-weight: 700; }
+.status-planned { background: #e0f2fe; color: #0369a1; }
+.status-completed { background: #d1fae5; color: #047857; }
+.status-partial { background: #ffedd5; color: #c2410c; }
+.status-missed { background: #fee2e2; color: #b91c1c; }
+.workout-meta-row { display: flex; gap: 16px; font-size: 0.85rem; margin-bottom: 8px; }
+.workout-desc, .workout-obj { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; }
+.workout-comparison-box { margin-top: 12px; padding: 10px 14px; background: var(--background); border-radius: var(--radius-sm); border-left: 3px solid var(--primary); font-size: 0.8rem; }
+.comp-title { font-weight: 800; color: var(--primary-dark); margin-bottom: 2px; }
+.workout-card-footer { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 12px; }
+.btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+.btn-secondary { background: var(--background); color: var(--text-primary); border: 1px solid var(--border); }
+.btn-danger { background: #ef4444; color: #ffffff; border: none; }
+
+/* MODAL DE TREINO */
+.modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-card { background: var(--surface); border-radius: var(--radius-md); width: 100%; max-width: 540px; padding: 24px; box-shadow: var(--shadow-md); max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); }
+.form-group input, .form-group select, .form-group textarea { padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); outline: none; font-size: 0.85rem; }
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.input-readonly { background: var(--background); font-weight: 700; }
+
+/* CALENDÁRIO */
+.calendar-controls { display: flex; align-items: center; gap: 10px; }
+.calendar-month-title { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); min-width: 150px; text-align: center; }
+.calendar-card { padding: 16px; }
+.calendar-header-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 8px; text-align: center; }
+.cal-head { font-size: 0.75rem; font-weight: 800; color: var(--text-secondary); padding: 8px 0; }
+.calendar-body-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.cal-day-cell { background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-sm); min-height: 100px; padding: 8px; display: flex; flex-direction: column; justify-content: flex-start; }
+.cal-day-empty { background: transparent; border-color: transparent; }
+.cal-day-today { border: 2px solid var(--primary); background: rgba(37, 99, 235, 0.04); }
+.cal-day-number { font-size: 0.8rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; }
+.cal-events-list { display: flex; flex-direction: column; gap: 4px; }
+.cal-event-tag { padding: 4px 6px; border-radius: var(--radius-sm); font-size: 0.7rem; cursor: pointer; display: flex; flex-direction: column; transition: var(--transition); }
+.cal-event-tag:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.event-status-planned { background: #e0f2fe; color: #0369a1; border-left: 3px solid #0284c7; }
+.event-status-completed { background: #d1fae5; color: #047857; border-left: 3px solid #10b981; }
+.event-status-partial { background: #ffedd5; color: #c2410c; border-left: 3px solid #f97316; }
+.event-status-missed { background: #fee2e2; color: #b91c1c; border-left: 3px solid #ef4444; }
+
+/* EVOLUÇÃO */
+.period-selector { display: flex; gap: 6px; background: var(--background); padding: 4px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.btn-period { background: transparent; border: none; padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: var(--transition); }
+.btn-period.active, .btn-period:hover { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+.evolution-charts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.chart-card { display: flex; flex-direction: column; }
+.chart-title { font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 16px; }
+.chart-container { position: relative; height: 240px; width: 100%; }
+.recent-completed-list { display: flex; flex-direction: column; gap: 8px; }
+
+/* ==========================================================================
+   ESTILOS DO MÓDULO DE RECORDES PESSOAIS (RPs)
+   ========================================================================== */
+.records-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
-  width: 100%;
 }
 
-.workout-card {
-  width: 100%;
-  box-sizing: border-box;
+.record-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  box-shadow: var(--shadow-sm);
 }
 
-.workout-card-header { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: flex-start; }
-.workout-type { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); word-break: break-word; }
-.workout-date { font-size: 0.8rem; color: var(--text-secondary); }
+.record-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
 
-.workout-meta-row { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.85rem; }
-.workout-desc, .workout-obj { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; }
+.record-distance-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
 
-.workout-card-footer { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 12px; }
+.record-card-main {
+  margin-bottom: 14px;
+}
 
-/* ==========================================================================
-   CALENDÁRIO FLUIDO
-   ========================================================================== */
-.calendar-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: center; }
-.calendar-card { width: 100%; padding: clamp(10px, 2vw, 16px); overflow-x: auto; box-sizing: border-box; }
+.record-time-highlight {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+  line-height: 1.2;
+}
 
-.calendar-header-grid, .calendar-body-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(40px, 1fr));
+.record-pace-sub {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.record-card-details {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
   gap: 4px;
-  width: 100%;
-  min-width: 320px; /* Garante usabilidade mínima no scroll interno se tela < 320px */
 }
 
-.cal-day-cell {
+.record-detail-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.record-detail-line span {
+  color: var(--text-secondary);
+}
+
+.record-detail-line strong {
+  color: var(--text-primary);
+}
+
+.record-sub-comparison {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
   background: var(--background);
-  border: 1px solid var(--border);
+  padding: 6px 8px;
   border-radius: var(--radius-sm);
-  min-height: clamp(60px, 10vh, 100px);
-  padding: clamp(2px, 1vw, 8px);
+}
+
+.sub-comp-item {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  gap: 4px;
 }
 
-.cal-day-number { font-size: clamp(0.7rem, 2vw, 0.8rem); font-weight: 800; margin-bottom: 4px; }
-
-.cal-event-tag {
-  padding: 4px;
-  border-radius: 4px;
-  font-size: clamp(0.6rem, 1.5vw, 0.7rem);
-  margin-bottom: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  flex-direction: column;
+.sub-comp-item span {
+  color: var(--text-muted);
 }
 
-/* ==========================================================================
-   CHARTS E EVOLUÇÃO
-   ========================================================================== */
-.evolution-charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
-  width: 100%;
-  margin-bottom: 24px;
+.sub-comp-item strong {
+  color: var(--text-primary);
 }
 
-.chart-card { width: 100%; padding: 16px; box-sizing: border-box; }
-.chart-container { position: relative; width: 100%; height: clamp(200px, 30vh, 260px); }
+/* RESPONSIVIDADE */
+@media (max-width: 1024px) {
+  .records-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
-/* ==========================================================================
-   BREAKPOINTS SEVEROS (CELULARES PEQUENOS)
-   ========================================================================== */
-@media (max-width: 480px) {
-  .dash-metrics-row { grid-template-columns: 1fr !important; }
-  .dash-bottom-row { grid-template-columns: 1fr !important; }
-  .workouts-grid { grid-template-columns: 1fr; }
+@media (max-width: 640px) {
+  .records-grid {
+    grid-template-columns: 1fr;
+  }
+  .dash-metrics-row { flex-wrap: wrap !important; }
+  .dash-card { flex: 1 1 100% !important; }
+  .dash-bottom-row { flex-direction: column !important; }
   .evolution-charts-grid { grid-template-columns: 1fr; }
-  
-  .workout-card-footer { justify-content: stretch; }
-  .workout-card-footer .btn { flex: 1 1 100%; text-align: center; }
-  
-  .filter-bar { flex-direction: column; align-items: stretch; }
-  .filter-group { flex-wrap: wrap; }
-  .btn-filter { flex: 1 1 calc(50% - 8px); text-align: center; }
 }
