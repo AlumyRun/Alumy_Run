@@ -18,7 +18,7 @@
 }
 
 .modal-card {
-  width: min(100%, 540px); /* 100% no celular, max de 540px no desktop */
+  width: min(100%, 540px);
   max-height: clamp(80vh, 90vh, 95vh);
   overflow-y: auto;
   background: var(--surface);
@@ -36,6 +36,7 @@
   align-items: center;
   margin-bottom: 20px;
 }
+.modal-header h3 { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); }
 
 .modal-close-btn {
   background: none;
@@ -79,8 +80,10 @@
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
   outline: none;
-  font-size: 1rem; /* Previne o zoom automático no iPhone */
+  font-size: 1rem;
   box-sizing: border-box;
 }
 
@@ -88,6 +91,8 @@ textarea {
   min-height: 80px;
   resize: vertical;
 }
+
+.input-readonly { background: var(--background) !important; font-weight: 700; color: var(--text-muted) !important; }
 
 .modal-footer {
   display: flex;
@@ -110,8 +115,9 @@ textarea {
   cursor: pointer;
   transition: var(--transition);
   text-align: center;
+  font-size: 0.9rem;
 }
-
+.btn:hover { filter: brightness(1.1); }
 .btn-secondary { background: var(--background); color: var(--text-primary); border: 1px solid var(--border); }
 .btn-danger { background: #ef4444; color: #fff; }
 .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
@@ -132,5 +138,5 @@ textarea {
 .status-missed { background: #fee2e2; color: #b91c1c; }
 
 @media (max-width: 480px) {
-  .modal-footer .btn { flex: 1 1 100%; width: 100%; } /* Botões ocupam 100% no celular */
+  .modal-footer .btn { flex: 1 1 100%; width: 100%; }
 }
