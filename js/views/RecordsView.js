@@ -14,36 +14,46 @@ export class RecordsView {
       console.warn("Erro ao buscar dados do Supabase na RecordsView:", e);
     }
 
+    // Filtra treinos e provas concluídos com segurança
     const completedWorkouts = (workouts || []).filter(w => w && w.status === 'completed' && w.completed);
     const completedRaces = (races || []).filter(r => r && r.status === 'completed' && r.resultTime && r.resultDistance);
 
-    // Unifica treinos e provas concluídas
+    // Mapeia todas as atividades concluídas
     const allActivities = [
-      ...completedWorkouts.map(w => ({
-        id: w.id,
-        name: w.type || 'Treino',
-        date: w.date,
-        distance: parseFloat(w.completed.distance) || 0,
-        time: w.completed.time || '00:00:00',
-        pace: w.completed.pace || StorageService.calculatePace(parseFloat(w.completed.distance), w.completed.time),
-        type: 'workout'
-      })),
-      ...completedRaces.map(r => ({
-        id: r.id,
-        name: r.name,
-        date: r.date,
-        distance: parseFloat(r.resultDistance) || 0,
-        time: r.resultTime || '00:00:00',
-        pace: StorageService.calculatePace(parseFloat(r.resultDistance), r.resultTime),
-        type: 'race'
-      }))
+      ...completedWorkouts.map(w => {
+        const dist = parseFloat(w.completed.distance) || 0;
+        const timeStr = w.completed.time || '00:00:00';
+        return {
+          id: w.id,
+          name: w.type || 'Treino',
+          date: w.date,
+          distance: dist,
+          time: timeStr,
+          pace: w.completed.pace || StorageService.calculatePace(dist, timeStr),
+          type: 'workout'
+        };
+      }),
+      ...completedRaces.map(r => {
+        const dist = parseFloat(r.resultDistance) || 0;
+        const timeStr = r.resultTime || '00:00:00';
+        return {
+          id: r.id,
+          name: r.name,
+          date: r.date,
+          distance: dist,
+          time: timeStr,
+          pace: StorageService.calculatePace(dist, timeStr),
+          type: 'race'
+        };
+      })
     ];
 
+    // Definição das faixas de distância com margem flexível (ex: 5k aceita de 4.5km a 5.8km)
     const distancesDef = [
-      { key: '5k', label: '5 KM', targetKm: 5, tolerance: 0.6 },
-      { key: '10k', label: '10 KM', targetKm: 10, tolerance: 0.8 },
-      { key: '21k', label: '21 KM (MEIA MARATONA)', targetKm: 21.097, tolerance: 1.2 },
-      { key: '42k', label: '42 KM (MARATONA)', targetKm: 42.195, tolerance: 2.0 }
+      { key: '5k', label: '5 KM', minKm: 4.5, maxKm: 5.8 },
+      { key: '10k', label: '10 KM', minKm: 9.2, maxKm: 10.8 },
+      { key: '21k', label: '21 KM (MEIA MARATONA)', minKm: 20.0, maxKm: 22.5 },
+      { key: '42k', label: '42 KM (MARATONA)', minKm: 40.0, maxKm: 43.5 }
     ];
 
     container.innerHTML = `
@@ -61,8 +71,8 @@ export class RecordsView {
     grid.innerHTML = '';
 
     distancesDef.forEach(def => {
-      // Busca atividades que se enquadram na tolerância da distância
-      const matches = allActivities.filter(a => Math.abs(a.distance - def.targetKm) <= def.tolerance);
+      // Encontra atividades que estejam dentro da faixa de km
+      const matches = allActivities.filter(a => a.distance >= def.minKm && a.distance <= def.maxKm);
 
       let bestRecord = null;
       let bestSeconds = Infinity;
@@ -113,8 +123,8 @@ export class RecordsView {
           </div>
           <div class="record-time-highlight" style="color: var(--text-muted);">--:--:--</div>
           <div class="record-pace-sub">Pace Médio: <strong>--/km</strong></div>
-          <div class="record-sub-comparison">
-            <span>Nenhuma atividade registrada próximo a esta distância.</span>
+          <div class="record-sub-comparison" style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+            <span>Nenhuma atividade registrada nesta faixa de distância.</span>
           </div>
         `;
       }
