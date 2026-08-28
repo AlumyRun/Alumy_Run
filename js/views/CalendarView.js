@@ -132,9 +132,13 @@ export class CalendarView {
             missed: 'event-status-missed'
           };
           eventTag.className = `cal-event-tag ${statusClassMap[w.status] || 'event-status-planned'}`;
+          
+          const isKey = w.planned && w.planned.isKeyWorkout;
+          const dist = (w.planned && w.planned.distance !== undefined) ? `${w.planned.distance} km` : '';
+          
           eventTag.innerHTML = `
-            <strong>${w.planned.isKeyWorkout ? '⭐ ' : ''}${w.type}</strong>
-            <span>${w.planned.distance} km</span>
+            <strong>${isKey ? '⭐ ' : ''}${w.type}</strong>
+            <span>${dist}</span>
           `;
         }
 
