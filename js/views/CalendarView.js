@@ -9,7 +9,6 @@ export class CalendarView {
   render(container) {
     this.container = container;
     
-    // Busca os treinos e as provas no LocalStorage
     const workouts = StorageService.getWorkouts();
     const races = StorageService.getRaces();
 
@@ -64,7 +63,6 @@ export class CalendarView {
       this.render(container);
     };
 
-    // Passamos também as provas (races) para a montagem do grid
     this.renderCalendarGrid(year, month, workouts, races);
   }
 
@@ -78,19 +76,16 @@ export class CalendarView {
     const today = new Date();
     const isCurrentMonthView = today.getFullYear() === year && today.getMonth() === month;
 
-    // Células vazias do início do mês
     for (let i = 0; i < firstDayIndex; i++) {
       const emptyCell = document.createElement('div');
       emptyCell.className = 'cal-day-cell cal-day-empty';
       grid.appendChild(emptyCell);
     }
 
-    // Células com os dias do mês
     for (let day = 1; day <= daysInMonth; day++) {
       const cell = document.createElement('div');
       cell.className = 'cal-day-cell';
 
-      // Destaque para o dia de hoje
       if (isCurrentMonthView && today.getDate() === day) {
         cell.classList.add('cal-day-today');
       }
@@ -106,42 +101,42 @@ export class CalendarView {
 
       const eventsListEl = cell.querySelector('.cal-events-list');
 
-      // 1. RENDERIZAR PROVAS (Aparecem primeiro, no topo do dia)
+      // 1. PROVAS
       const dayRaces = races.filter(r => r.date === dateIso);
       dayRaces.forEach(r => {
         const eventTag = document.createElement('div');
         eventTag.className = 'cal-event-tag';
-        
-        // Estilo de destaque dourado/âmbar para a Prova
         eventTag.style.background = '#fef3c7';
         eventTag.style.color = '#b45309';
         eventTag.style.borderLeft = '3px solid #f59e0b';
-
-        eventTag.innerHTML = `
-          <strong>🏁 ${r.name}</strong>
-          <span>${r.distance} km</span>
-        `;
-        
+        eventTag.innerHTML = `<strong>🏁 ${r.name}</strong><span>${r.distance} km</span>`;
         eventsListEl.appendChild(eventTag);
       });
 
-      // 2. RENDERIZAR TREINOS
+      // 2. TREINOS
       const dayWorkouts = workouts.filter(w => w.date === dateIso);
       dayWorkouts.forEach(w => {
         const eventTag = document.createElement('div');
 
-        const statusClassMap = {
-          planned: 'event-status-planned',
-          completed: 'event-status-completed',
-          partial: 'event-status-partial',
-          missed: 'event-status-missed'
-        };
-
-        eventTag.className = `cal-event-tag ${statusClassMap[w.status] || 'event-status-planned'}`;
-        eventTag.innerHTML = `
-          <strong>${w.type}</strong>
-          <span>${w.planned.distance} km</span>
-        `;
+        if (w.status === 'rest') {
+          eventTag.className = `cal-event-tag`;
+          eventTag.style.background = '#f1f5f9';
+          eventTag.style.color = '#64748b';
+          eventTag.style.borderLeft = '3px solid #cbd5e1';
+          eventTag.innerHTML = `<strong>🛋️ Descanso</strong>`;
+        } else {
+          const statusClassMap = {
+            planned: 'event-status-planned',
+            completed: 'event-status-completed',
+            partial: 'event-status-partial',
+            missed: 'event-status-missed'
+          };
+          eventTag.className = `cal-event-tag ${statusClassMap[w.status] || 'event-status-planned'}`;
+          eventTag.innerHTML = `
+            <strong>${w.planned.isKeyWorkout ? '⭐ ' : ''}${w.type}</strong>
+            <span>${w.planned.distance} km</span>
+          `;
+        }
 
         eventTag.onclick = (e) => {
           e.stopPropagation();
